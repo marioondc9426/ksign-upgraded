@@ -88,6 +88,15 @@ extension Storage {
 		}
 		
         saveContext()
+		
+		// hand the repositories we already downloaded to the list, so nothing has to be fetched again
+		for (url, repo) in repos {
+			let identifier = repo.id ?? url.absoluteString
+			if let source = self.source(withIdentifier: identifier) {
+				DispatchQueue.main.async { SourcesViewModel.shared.prime(source, with: repo) }
+			}
+		}
+		
         completion(nil)
 	}
 
@@ -110,6 +119,13 @@ extension Storage {
 		saveContext()
 	}
 
+	func source(withIdentifier identifier: String) -> AltSource? {
+		let fetchRequest: NSFetchRequest<AltSource> = AltSource.fetchRequest()
+		fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+		fetchRequest.fetchLimit = 1
+		return try? context.fetch(fetchRequest).first
+	}
+	
 	func sourceExists(_ identifier: String) -> Bool {
 		let fetchRequest: NSFetchRequest<AltSource> = AltSource.fetchRequest()
 		fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)

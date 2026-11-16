@@ -209,6 +209,10 @@ enum FR {
 				
 				if !Storage.shared.sourceExists(id) {
 					Storage.shared.addSource(url, repository: data, id: id) { _ in
+						// the repository is already downloaded: show it right away instead of fetching every source again
+						if let source = Storage.shared.source(withIdentifier: id) {
+							DispatchQueue.main.async { SourcesViewModel.shared.prime(source, with: data) }
+						}
 						competion()
 					}
 				} else {

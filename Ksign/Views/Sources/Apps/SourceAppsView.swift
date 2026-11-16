@@ -52,7 +52,12 @@ struct SourceAppsView: View {
     
     var object: [AltSource]
     @ObservedObject var viewModel: SourcesViewModel
-    @State private var _sources: [ASRepository]?
+    
+    /// repositories that already finished downloading (grows while fetching)
+    private var _sources: [ASRepository]? {
+        let loaded = object.compactMap { viewModel.sources[$0] }
+        return loaded.isEmpty ? nil : loaded
+    }
     
     @FetchRequest(
         entity: AltSource.entity(),
@@ -79,7 +84,7 @@ struct SourceAppsView: View {
                 if #available(iOS 17, *) {
                     ContentUnavailableView {
                         ProgressView()
-                        Label(.localized("Fetching..."), systemImage: "")
+                        Label(_fetchingTitle, systemImage: "")
                     } description: {
                         Text(.localized("Stuck? Check if you have any sources added."))
                     }
@@ -87,6 +92,22 @@ struct SourceAppsView: View {
                 else { ProgressView() }
             }
         }
+        .overlay(alignment: .bottom) {
+            // apps are already listed, but some sources are still downloading
+            if _sources != nil, viewModel.isFetching {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text(_fetchingTitle)
+                        .font(.footnote)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(.bottom, 12)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.isFetching)
         .navigationTitle(_navigationTitle)
         .searchable(text: $_searchText, placement: .platform())
         .toolbarTitleMenu {
@@ -146,14 +167,7 @@ struct SourceAppsView: View {
             }
         }
         .onAppear {
-            if !hasLoadedOnce, viewModel.isFinished {
-                _load()
-                hasLoadedOnce = true
-            }
             _sortOption = SortOption(rawValue: _sortOptionRawValue) ?? .default
-        }
-        .onChange(of: viewModel.isFinished) { _ in
-            _load()
         }
         .onChange(of: _sortOption) { newValue in
             _sortOptionRawValue = newValue.rawValue
@@ -164,16 +178,9 @@ struct SourceAppsView: View {
         
     }
     
-    private func _load() {
-        isLoading = true
-        
-        Task {
-            let loadedSources = object.compactMap { viewModel.sources[$0] }
-            _sources = loadedSources
-            withAnimation(.easeIn(duration: 0.2)) {
-                isLoading = false
-            }
-        }
+    private var _fetchingTitle: String {
+        guard viewModel.isFetching, viewModel.fetchTotal > 0 else { return .localized("Fetching...") }
+        return String(format: .localized("Fetching... %lld of %lld"), viewModel.fetchDone, viewModel.fetchTotal)
     }
     
     struct SourceAppRoute: Identifiable, Hashable {

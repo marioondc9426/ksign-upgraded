@@ -204,7 +204,7 @@ extension BulkSigningView {
 			NavigationLink {
 				MultiCertificatePickerView(selection: $_multiCerts)
 			} label: {
-				LabeledContent(.localized("Multi Sign")) {
+				LabeledContent(String.localized("Multi Sign")) {
 					Text(_multiSignLabel)
 				}
 			}

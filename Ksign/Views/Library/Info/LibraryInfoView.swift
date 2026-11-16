@@ -23,6 +23,7 @@ struct LibraryInfoView: View {
 				}
 				
 				_infoSection(for: app)
+				AppStoreInfoSection(bundleID: app.identifier)
 				_certSection(for: app)
 				_bundleSection(for: app)
 				_executableSection(for: app)

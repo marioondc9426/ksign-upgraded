@@ -94,9 +94,18 @@ extension ServerInstaller {
 	}
 
 	var html: String {
+		// redirects by itself, and also shows a button: Safari can refuse an automatic jump to itms-services://
+		// without a tap, which looked like "Safari cannot open this page"
 		"""
 		<html style="background-color: black;">
+		<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="refresh" content="0; url=\(iTunesLinkExternal)">
+		</head>
+		<body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-family:-apple-system,sans-serif;">
+		<a href="\(iTunesLinkExternal)" style="color:#fff;background:#0a84ff;padding:16px 28px;border-radius:14px;font-size:18px;text-decoration:none;">Tap to install</a>
 		<script type="text/javascript">window.location="\(iTunesLinkExternal)"</script>
+		</body>
 		</html>
 		"""
 	}

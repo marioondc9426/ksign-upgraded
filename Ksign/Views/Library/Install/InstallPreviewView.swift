@@ -19,7 +19,6 @@ struct InstallPreviewView: View {
 	
 	// Methods
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
-	@AppStorage("Feather.serverMethod") private var _serverMethod: Int = 1
 	@State private var _isWebviewPresenting = false
     @State private var progressTask: Task<Void, Never>?
 	
@@ -42,6 +41,9 @@ struct InstallPreviewView: View {
 		ZStack {
 			InstallProgressView(app: app, viewModel: viewModel)
 			_status()
+			if case .broken(_) = viewModel.status {
+				_shareLogsButton()
+			}
 		}
 		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
 		.sheet(isPresented: $_isWebviewPresenting) {
@@ -49,11 +51,7 @@ struct InstallPreviewView: View {
 		}
 		.onReceive(viewModel.$status) { newStatus in
 			if case .ready = newStatus {
-				if _serverMethod == 0 {
-					UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-				} else if _serverMethod == 1 {
-					_isWebviewPresenting = true
-				}
+				installer.presentInstall { _isWebviewPresenting = true }
 			}
             
             if case .installing = newStatus {
@@ -65,7 +63,7 @@ struct InstallPreviewView: View {
                 }
             }
 			
-			if case .sendingPayload = newStatus, _serverMethod == 1 {
+			if case .sendingPayload = newStatus {
 				_isWebviewPresenting = false
 			}
             
@@ -87,6 +85,19 @@ struct InstallPreviewView: View {
             progressTask = nil
 			BackgroundAudioManager.shared.stop()
 		}
+	}
+	
+	/// one tap to export the logs when an install fails
+	@ViewBuilder
+	private func _shareLogsButton() -> some View {
+		Button {
+			LogsManager.shared.share()
+		} label: {
+			Label(.localized("Share Logs"), systemImage: "square.and.arrow.up")
+		}
+		.buttonStyle(.bordered)
+		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+		.padding()
 	}
 	
 	@ViewBuilder

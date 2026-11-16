@@ -15,7 +15,6 @@ struct BulkInstallProgressView: View {
     @StateObject var viewModel = InstallerStatusViewModel()
     
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
-    @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 1
     @StateObject var installer: ServerInstaller
     @State private var _isWebviewPresenting = false
     @State private var progressTask: Task<Void, Never>?
@@ -31,17 +30,22 @@ struct BulkInstallProgressView: View {
     var body: some View {
         VStack {
             InstallProgressView(app: app, viewModel: viewModel)
+            if case .broken(_) = viewModel.status {
+                // one tap to export the logs when an install fails
+                Button {
+                    LogsManager.shared.share()
+                } label: {
+                    Label(.localized("Share Logs"), systemImage: "square.and.arrow.up")
+                }
+                .buttonStyle(.bordered)
+            }
         }
         .sheet(isPresented: $_isWebviewPresenting) {
             SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
         }
         .onReceive(viewModel.$status) { newStatus in
             if case .ready = newStatus {
-                if _serverMethod == 0 {
-                    UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-                } else if _serverMethod == 1 {
-                    _isWebviewPresenting = true
-                }
+                installer.presentInstall { _isWebviewPresenting = true }
             }
             
             if case .installing = newStatus {
@@ -53,7 +57,7 @@ struct BulkInstallProgressView: View {
                 }
             }
             
-            if case .sendingPayload = newStatus, _serverMethod == 1 {
+            if case .sendingPayload = newStatus {
                 _isWebviewPresenting = false
             }
             

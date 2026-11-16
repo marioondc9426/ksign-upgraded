@@ -232,7 +232,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 #if SERVER
     private func _downloadSSLCertificates() {
-        let serverURL = "https://backloop.dev/pack.json"
+        let serverURL = ServerInstaller.getServerPackURL()
         
         FR.downloadSSLCertificates(from: serverURL) { success in
             if success {

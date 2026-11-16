@@ -43,7 +43,9 @@ extension ServerInstaller {
 	}
 	
 	// MARK: Files/IP
-	static let sni: String = {
+	/// host used in every URL of the install flow. It is computed on each access (it used to be a `static let`,
+	/// so changing "Only use localhost" did nothing until the app was restarted).
+	static var sni: String {
 		let localhost = "127.0.0.1"
 		
 		if getServerMethod() == 1 {
@@ -51,9 +53,19 @@ extension ServerInstaller {
 			? (getLocalAddress() ?? localhost)
 			: localhost
 		} else {
-			return readCommonName() ?? localhost
+			return hostFromCommonName(readCommonName()) ?? localhost
 		}
-	}()
+	}
+	
+	/// the certificate is a wildcard ("*.backloop.dev"); a literal "*" is not a valid host, so use any subdomain
+	/// (every *.backloop.dev name resolves to 127.0.0.1)
+	static func hostFromCommonName(_ name: String?) -> String? {
+		guard var name, !name.isEmpty else { return nil }
+		if name.hasPrefix("*.") {
+			name = "local." + name.dropFirst(2)
+		}
+		return name
+	}
 	
 	static func tls() throws -> TLSConfiguration? {
 		guard
@@ -106,7 +118,8 @@ extension ServerInstaller {
 	}
 	
 	static func getLocalAddress() -> String? {
-		var address: String?
+		var wifi: String?
+		var cellular: String?
 		var ifaddr: UnsafeMutablePointer<ifaddrs>?
 		
 		if getifaddrs(&ifaddr) == 0 {
@@ -116,17 +129,17 @@ extension ServerInstaller {
 				let addrFamily = interface.ifa_addr.pointee.sa_family
 				
 				if addrFamily == UInt8(AF_INET) {
-					
 					let name = String(cString: interface.ifa_name)
 					if name == "en0" || name == "pdp_ip0" {
-						
 						var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
 						if getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
 									   &hostname, socklen_t(hostname.count),
 									   nil, socklen_t(0), NI_NUMERICHOST) == 0 {
-							address = String(cString: hostname)
+							let value = String(cString: hostname)
+							// the loop used to keep the LAST match, so a phone with Wi-Fi and a SIM ended up with the
+							// cellular address, which Safari on the same phone cannot reach as a local server
+							if name == "en0" { wifi = value } else { cellular = value }
 						}
-						
 					}
 				}
 				ptr = ptr!.pointee.ifa_next
@@ -134,6 +147,8 @@ extension ServerInstaller {
 			freeifaddrs(ifaddr)
 		}
 		
-		return address
+		// without Wi-Fi (mobile data only) use localhost: the cellular address is not reachable by Safari or installd
+		_ = cellular
+		return wifi
 	}
 }

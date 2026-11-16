@@ -19,7 +19,7 @@ struct ServerView: View {
 	]
 	
 	private let _dataService = NBFetchService()
-	private let _serverPackUrl = "https://backloop.dev/pack.json"
+	@AppStorage("Feather.serverPackUrl") private var _serverPackUrl: String = ServerInstaller.defaultServerPackURL
 	
 	var body: some View {
 		Group {
@@ -33,9 +33,30 @@ struct ServerView: View {
 					.disabled(_serverMethod != 1)
 			}
 			
+			if let expiry = ServerInstaller.sslCertificateExpiry() {
+				Section {
+					if expiry < Date() {
+						Label(
+							String(format: .localized("The SSL certificate expired on %@. Fully Local can not work until a new one is published, so Semi Local is used instead."), expiry.formatted(date: .abbreviated, time: .omitted)),
+							systemImage: "exclamationmark.triangle"
+						)
+						.foregroundStyle(.orange)
+					} else {
+						Label(
+							String(format: .localized("SSL certificate valid until %@"), expiry.formatted(date: .abbreviated, time: .omitted)),
+							systemImage: "checkmark.seal"
+						)
+					}
+				}
+			}
+			
 			Section {
+				TextField(.localized("Certificate pack URL"), text: $_serverPackUrl)
+					.textInputAutocapitalization(.never)
+					.autocorrectionDisabled()
+					.keyboardType(.URL)
 				Button(.localized("Update SSL Certificates"), systemImage: "arrow.down.doc") {
-					FR.downloadSSLCertificates(from: _serverPackUrl) { success in
+					FR.downloadSSLCertificates(from: ServerInstaller.getServerPackURL()) { success in
 						if !success {
 							DispatchQueue.main.async {
 								UIAlertController.showAlertWithOk(

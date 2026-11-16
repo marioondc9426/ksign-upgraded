@@ -177,6 +177,13 @@ enum FR {
 					try pack.cert.write(to: crtURL, atomically: true, encoding: .utf8)
 					try pack.info.domains.commonName.write(to: commonNameURL, atomically: true, encoding: .utf8)
 					
+					// remember when the certificate expires, Fully Local stops working after that date
+					if let notAfter = pack.info.notAfter {
+						UserDefaults.standard.set(notAfter, forKey: "Feather.sslNotAfter")
+					} else {
+						UserDefaults.standard.removeObject(forKey: "Feather.sslNotAfter")
+					}
+					
 					generator.notificationOccurred(.success)
 					completion(true)
 				} catch {

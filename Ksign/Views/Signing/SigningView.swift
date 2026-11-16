@@ -311,14 +311,10 @@ extension SigningView {
 			certificate: _selectedCert()
 		) { [self] error in
 			if let error {
-				let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel) { _ in
-					dismiss()
-				}
-				
-				UIAlertController.showAlert(
+				LogsManager.shared.showErrorAlert(
 					title: .localized("Signing"),
 					message: error.localizedDescription,
-					actions: [ok]
+					onDismiss: { dismiss() }
 				)
 			} else {
 				// Remove app after signed option thing

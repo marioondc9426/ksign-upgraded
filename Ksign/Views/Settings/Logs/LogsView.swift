@@ -49,23 +49,6 @@ struct LogsView: View {
 	}
 
 	private func exportLogs() {
-		let logText = manager.exportToText()
-
-		let dateFormatter = DateFormatter()
-		dateFormatter.dateFormat = "yyyy-MM-dd-HHmmss"
-		let timestamp = dateFormatter.string(from: Date())
-		let fileName = "Ksign-Logs-\(timestamp).txt"
-
-		let tempDir = FileManager.default.temporaryDirectory
-		let fileURL = tempDir.appendingPathComponent(fileName)
-
-		do {
-			try logText.write(to: fileURL, atomically: true, encoding: .utf8)
-			UIActivityViewController.show(activityItems: [fileURL])
-		} catch {
-			print("Error exporting logs: \(error.localizedDescription)")
-		}
+		manager.share()
 	}
 }
-
-

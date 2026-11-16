@@ -83,6 +83,22 @@ class ServerInstaller: Identifiable, ObservableObject {
 		}
 	}
 	
+	/// opens the system install prompt (itms-services). Fully Local uses the manifest served here,
+	/// Semi Local uses the externally generated one. If iOS refuses to open the link, `fallback` shows the install page in Safari.
+	func presentInstall(fallback: @escaping () -> Void) {
+		let link = ServerInstaller.getServerMethod() == 0 ? iTunesLink : iTunesLinkExternal
+		guard let url = URL(string: link) else {
+			fallback()
+			return
+		}
+		
+		DispatchQueue.main.async {
+			UIApplication.shared.open(url, options: [:]) { opened in
+				if !opened { fallback() }
+			}
+		}
+	}
+	
 	private func _shutdownServer() {
 		guard _needsShutdown else { return }
 		
@@ -97,8 +113,40 @@ class ServerInstaller: Identifiable, ObservableObject {
 		}
 	}
 		
+	/// 0 = Fully Local (https + backloop.dev certificate), 1 = Semi Local (http + external manifest)
+	/// the settings screen defaults to Semi Local (1), so an unset value must be 1 too.
+	/// `integer(forKey:)` returns 0 when the key was never written, which silently picked Fully Local
+	/// (https + wildcard host) while the UI showed Semi Local: that is why the page never loaded.
+	static func getConfiguredServerMethod() -> Int {
+		(UserDefaults.standard.object(forKey: "Feather.serverMethod") as? Int) ?? 1
+	}
+	
+	/// the method actually used: Fully Local needs a valid SSL certificate, so an expired one falls back to Semi Local
 	static func getServerMethod() -> Int {
-		UserDefaults.standard.integer(forKey: "Feather.serverMethod")
+		let method = getConfiguredServerMethod()
+		return (method == 0 && isSSLCertificateExpired()) ? 1 : method
+	}
+	
+	// MARK: SSL certificate expiry
+	/// expiry date of the certificate pack saved by `FR.downloadSSLCertificates` (nil when unknown)
+	static func sslCertificateExpiry() -> Date? {
+		guard let raw = UserDefaults.standard.string(forKey: "Feather.sslNotAfter") else { return nil }
+		let withFraction = ISO8601DateFormatter()
+		withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+		return withFraction.date(from: raw) ?? ISO8601DateFormatter().date(from: raw)
+	}
+	
+	static func isSSLCertificateExpired() -> Bool {
+		guard let date = sslCertificateExpiry() else { return false }
+		return date < Date()
+	}
+	
+	/// where the certificate pack (cert, key, common name, expiry) is downloaded from
+	static let defaultServerPackURL = "https://backloop.dev/pack.json"
+	
+	static func getServerPackURL() -> String {
+		let value = UserDefaults.standard.string(forKey: "Feather.serverPackUrl")?.trimmingCharacters(in: .whitespacesAndNewlines)
+		return (value?.isEmpty == false) ? value! : defaultServerPackURL
 	}
 	
 	static func getIPFix() -> Bool {

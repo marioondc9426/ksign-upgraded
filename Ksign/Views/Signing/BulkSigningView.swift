@@ -35,6 +35,9 @@ struct BulkSigningView: View {
 	@State private var _isFilePickerPresenting = false
 	@State private var _isImagePickerPresenting = false
 	@State private var _isSigning = false
+	@State private var _multiCerts: Set<Int> = []   // Multi Sign: extra certificates (empty = just the one chosen above)
+	@State private var _signDone = 0
+	@State private var _signTotal = 0
 	@State private var _selectedPhoto: PhotosPickerItem? = nil
 	@State private var _editingConfigId: String?
 	
@@ -118,6 +121,18 @@ struct BulkSigningView: View {
 				}
 			}
 			.disabled(_isSigning)
+			.overlay {
+				if _isSigning {
+					VStack(spacing: 12) {
+						ProgressView(value: Double(_signDone), total: Double(max(_signTotal, 1)))
+						Text(String(format: .localized("Signing %lld of %lld"), min(_signDone + 1, _signTotal), _signTotal))
+							.font(.footnote)
+					}
+					.padding(20)
+					.frame(maxWidth: 260)
+					.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+				}
+			}
 			.animation(.smooth, value: _isSigning)
 		}
 	}
@@ -185,6 +200,14 @@ extension BulkSigningView {
 					)
 				}
 			}
+			
+			NavigationLink {
+				MultiCertificatePickerView(selection: $_multiCerts)
+			} label: {
+				LabeledContent(.localized("Multi Sign")) {
+					Text(_multiSignLabel)
+				}
+			}
 		}
 	}
 	
@@ -238,8 +261,39 @@ extension BulkSigningView {
 		}
 	}
 
+	private var _multiSignLabel: String {
+		if _multiCerts.isEmpty { return .localized("Off") }
+		return String(format: .localized("%lld certificates"), _multiCerts.count)
+	}
+	
+	private struct SignJob {
+		let app: AppInfoPresentable
+		let options: Options
+		let icon: UIImage?
+		let cert: CertificatePair?
+		let certName: String
+	}
+	
+	/// every app x every selected certificate (or just the one chosen above when Multi Sign is off)
+	private func _jobs() -> [SignJob] {
+		let chosen = _multiCerts.sorted().compactMap { certificates.indices.contains($0) ? certificates[$0] : nil }
+		var jobs: [SignJob] = []
+		
+		for config in _configs {
+			if config.options.doAdhocSigning || config.options.onlyModify || chosen.isEmpty {
+				let cert = _selectedCert()
+				jobs.append(SignJob(app: config.app, options: config.options, icon: config.icon, cert: cert, certName: cert?.nickname ?? "-"))
+			} else {
+				for cert in chosen {
+					jobs.append(SignJob(app: config.app, options: config.options, icon: config.icon, cert: cert, certName: cert.nickname ?? .localized("Unknown")))
+				}
+			}
+		}
+		return jobs
+	}
+
 	private func _start() {
-		let canSign = _selectedCert() != nil || _configs.allSatisfy { $0.options.doAdhocSigning || $0.options.onlyModify }
+		let canSign = !_multiCerts.isEmpty || _selectedCert() != nil || _configs.allSatisfy { $0.options.doAdhocSigning || $0.options.onlyModify }
 		guard canSign else {
 			UIAlertController.showAlertWithOk(
 				title: .localized("No Certificate"),
@@ -249,27 +303,57 @@ extension BulkSigningView {
 			return
 		}
 
+		let jobs = _jobs()
+		guard !jobs.isEmpty else { return }
+		
 		let generator = UIImpactFeedbackGenerator(style: .light)
 		generator.impactOccurred()
+		_signDone = 0
+		_signTotal = jobs.count
 		_isSigning = true
-
 		
-		for config in _configs {
-			FR.signPackageFile(
-				config.app,
-				using: config.options,
-				icon: config.icon,
-				certificate: _selectedCert()
-			) { [self] error in
-				if let error {
-					UIAlertController.showAlertWithOk(title: "Error", message: error.localizedDescription)
+		// one at a time: signing copies and rewrites whole apps, running them all together spikes memory
+		// and two jobs for the same app would fight over the same files
+		Task { @MainActor in
+			var failures: [String] = []
+			
+			for (index, job) in jobs.enumerated() {
+				_signDone = index
+				
+				let error: Error? = await withCheckedContinuation { continuation in
+					FR.signPackageFile(
+						job.app,
+						using: job.options,
+						icon: job.icon,
+						certificate: job.cert
+					) { error in
+						continuation.resume(returning: error)
+					}
 				}
+				
+				if let error {
+					failures.append("\(job.app.name ?? "?") (\(job.certName)): \(error.localizedDescription)")
+				}
+			}
+			
+			_signDone = jobs.count
+			
+			let finish = {
 				DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
 					NotificationCenter.default.post(name: NSNotification.Name("ksign.bulkSigningFinished"), object: nil)
 				}
 				dismiss()
 			}
+			
+			if failures.isEmpty {
+				finish()
+			} else {
+				LogsManager.shared.showErrorAlert(
+					title: .localized("Signing"),
+					message: failures.joined(separator: "\n"),
+					onDismiss: finish
+				)
+			}
 		}
-
 	}
 }

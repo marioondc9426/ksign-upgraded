@@ -1,0 +1,33 @@
+{
+  "name": "ksign-upgraded builds",
+  "identifier": "io.github.marioondc9426.ksign-upgraded.source",
+  "subtitle": "every version, added automatically",
+  "iconURL": "https://github.com/marioondc9426.png",
+  "website": "https://github.com/marioondc9426/ksign-upgraded",
+  "apps": [
+    {
+      "name": "Ksign+",
+      "bundleIdentifier": "nya.asami.ksign",
+      "developerName": "marioondc9426",
+      "subtitle": "all versions",
+      "localizedDescription": "every build published in marioondc9426/ksign-upgraded",
+      "iconURL": "https://github.com/marioondc9426.png",
+      "tintColor": "3c94fc",
+      "versions": [
+        {
+          "version": "1.6.1.143",
+          "date": "2026-11-17T16:36:23Z",
+          "size": 16434440,
+          "downloadURL": "https://github.com/marioondc9426/ksign-upgraded/releases/download/build-883f32d/KsignPlus-883f32d.ipa",
+          "localizedDescription": "Ksign+ 1.6.1.143",
+          "minOSVersion": "16.0"
+        }
+      ],
+      "version": "1.6.1.143",
+      "versionDate": "2026-11-17T16:36:23Z",
+      "downloadURL": "https://github.com/marioondc9426/ksign-upgraded/releases/download/build-883f32d/KsignPlus-883f32d.ipa",
+      "size": 16434440
+    }
+  ],
+  "news": []
+}

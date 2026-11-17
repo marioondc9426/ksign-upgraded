@@ -16,6 +16,17 @@ struct HomeView: View {
 
 	@State private var _isImporting = false
 	@State private var _appToSign: AnyApp?
+	@State private var _isTestPicking = false
+
+	@FetchRequest(
+		entity: CertificatePair.entity(),
+		sortDescriptors: [NSSortDescriptor(keyPath: \CertificatePair.expiration, ascending: true)]
+	) private var _certificates: FetchedResults<CertificatePair>
+
+	/// the certificate that ends first (only the ones still valid)
+	private var _soonestCertificate: CertificatePair? {
+		_certificates.first { $0.revoked != true && ($0.expiration ?? .distantPast) > Date() }
+	}
 
 	@FetchRequest(
 		entity: Imported.entity(),
@@ -45,11 +56,41 @@ struct HomeView: View {
 					.padding(.vertical, 8)
 				}
 
+				if let cert = _soonestCertificate, let expiration = cert.expiration {
+					let days = Calendar.current.dateComponents([.day], from: Date(), to: expiration).day ?? 0
+					Section {
+						NavigationLink {
+							BulkResignView()
+						} label: {
+							HStack {
+								Image(systemName: days <= 3 ? "exclamationmark.triangle.fill" : "checkmark.seal.fill")
+									.foregroundStyle(days <= 3 ? .red : (days <= 14 ? .orange : .green))
+								VStack(alignment: .leading, spacing: 2) {
+									Text(cert.nickname ?? .localized("Unknown"))
+									Text(String(format: .localized("%lld days left"), days))
+										.font(.footnote)
+										.foregroundStyle(.secondary)
+								}
+							}
+						}
+					} header: {
+						Text(.localized("Certificate"))
+					} footer: {
+						Text(.localized("Tap to sign your apps again with another certificate."))
+					}
+				}
+
 				Section(.localized("Actions")) {
 					Button {
 						_isImporting = true
 					} label: {
 						Label(.localized("Import IPA to Library"), systemImage: "square.and.arrow.down")
+					}
+
+					Button {
+						_isTestPicking = true
+					} label: {
+						Label(.localized("Test tweaks in game"), systemImage: "gamecontroller")
 					}
 				}
 
@@ -113,6 +154,9 @@ struct HomeView: View {
 					.padding(24)
 					.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
 				}
+			}
+			.sheet(isPresented: $_isTestPicking) {
+				TestPickerView()
 			}
 			.sheet(isPresented: $_isImporting) {
 				FileImporterRepresentableView(

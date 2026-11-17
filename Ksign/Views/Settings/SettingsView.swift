@@ -86,6 +86,12 @@ struct SettingsView: View {
 					NavigationLink(destination: ServerDiagnosticsView()) {
                         Label(.localized("Server Diagnostics"), systemImage: "stethoscope")
                     }
+					NavigationLink(destination: SigningHistoryView()) {
+                        Label(.localized("Signing History"), systemImage: "clock.arrow.circlepath")
+                    }
+					NavigationLink(destination: StorageCleanupView()) {
+                        Label(.localized("Storage"), systemImage: "internaldrive")
+                    }
 					NavigationLink(destination: BulkResignView()) {
                         Label(.localized("Bulk Re-sign"), systemImage: "arrow.triangle.2.circlepath")
                     }

@@ -23,6 +23,7 @@ enum BackupError: LocalizedError {
 struct BackupSummary {
 	var sources = 0
 	var certificates = 0
+	var presets = 0
 	var skipped = 0
 }
 
@@ -32,6 +33,13 @@ enum BackupManager {
 		var date: Date
 		var sources: [String]
 		var certificates: [CertEntry]
+		var presets: [PresetEntry]?
+	}
+
+	private struct PresetEntry: Codable {
+		var preset: SigningPreset
+		/// tweak files, copied next to the manifest in presets/<id>/
+		var tweakFiles: [String]
 	}
 
 	private struct CertEntry: Codable {
@@ -91,7 +99,20 @@ enum BackupManager {
 			))
 		}
 
-		let manifest = Manifest(version: 1, date: Date(), sources: sourceURLs, certificates: entries)
+		var presetEntries: [PresetEntry] = []
+		for preset in SigningPresetStore.shared.presets {
+			var names: [String] = []
+			let dir = work.appendingPathComponent("presets/\(preset.id)", isDirectory: true)
+			for file in preset.options.injectionFiles where fm.fileExists(atPath: file.path) {
+				try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+				if (try? fm.copyItem(at: file, to: dir.appendingPathComponent(file.lastPathComponent))) != nil {
+					names.append(file.lastPathComponent)
+				}
+			}
+			presetEntries.append(PresetEntry(preset: preset, tweakFiles: names))
+		}
+
+		let manifest = Manifest(version: 1, date: Date(), sources: sourceURLs, certificates: entries, presets: presetEntries)
 		let encoder = JSONEncoder()
 		encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
 		encoder.dateEncodingStrategy = .iso8601
@@ -153,6 +174,28 @@ enum BackupManager {
 				) { continuation.resume(returning: $0) }
 			}
 			if error == nil { summary.certificates += 1 }
+		}
+
+		// presets (same name = already here)
+		let havePresets = Set(SigningPresetStore.shared.presets.map { $0.name })
+		let documents = fm.urls(for: .documentDirectory, in: .userDomainMask)[0]
+		for entry in manifest.presets ?? [] {
+			if havePresets.contains(entry.preset.name) { summary.skipped += 1; continue }
+
+			var preset = entry.preset
+			let target = documents.appendingPathComponent("Presets/\(preset.id)", isDirectory: true)
+			try? fm.createDirectory(at: target, withIntermediateDirectories: true)
+
+			var urls: [URL] = []
+			for name in entry.tweakFiles {
+				let from = work.appendingPathComponent("presets/\(entry.preset.id)/\(name)")
+				let to = target.appendingPathComponent(name)
+				try? fm.removeItem(at: to)
+				if (try? fm.copyItem(at: from, to: to)) != nil { urls.append(to) }
+			}
+			preset.options.injectionFiles = urls
+			SigningPresetStore.shared.presets.append(preset)
+			summary.presets += 1
 		}
 
 		return summary

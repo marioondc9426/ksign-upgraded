@@ -20,6 +20,7 @@ struct FeatherApp: App {
 	@StateObject var logsManager = LogsManager.shared
 	let storage = Storage.shared
 	@State private var _pendingUpdates: [OutdatedApp] = []
+	@StateObject private var _presenter = AppPresenter.shared
 
 	var body: some Scene {
 		WindowGroup {
@@ -31,6 +32,15 @@ struct FeatherApp: App {
 				VariedTabbarView()
 					.environment(\.managedObjectContext, storage.context)
 					.onOpenURL(perform: _handleURL)
+					.fullScreenCover(item: $_presenter.signApp) { app in
+						SigningView(app: app.base)
+					}
+					.sheet(item: $_presenter.testApp) { app in
+						TweakTestView(app: app.base)
+					}
+					.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ksign.signFinished"))) { _ in
+						_presenter.signingFinished()
+					}
 					.transition(.move(edge: .top).combined(with: .opacity))
 			}
 			.animation(.smooth, value: downloadManager.manualDownloads.description)
@@ -82,11 +92,16 @@ struct FeatherApp: App {
 			}
 		} else {
 			if url.pathExtension == "ipa" || url.pathExtension == "tipa" {
+				// open the signing screen as soon as the ipa is in the library
 				if FileManager.default.isFileFromFileProvider(at: url) {
 					guard url.startAccessingSecurityScopedResource() else { return }
-					FR.handlePackageFile(url) { _ in }
+					FR.handlePackageFile(url) { error in
+						if error == nil { AppPresenter.openSignForNewestImported() }
+					}
 				} else {
-					FR.handlePackageFile(url) { _ in }
+					FR.handlePackageFile(url) { error in
+						if error == nil { AppPresenter.openSignForNewestImported() }
+					}
 				}
 				
 				return

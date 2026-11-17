@@ -34,6 +34,8 @@ struct PresetRule: Codable, Identifiable, Equatable {
 struct SigningPreset: Codable, Identifiable, Equatable {
 	var id = UUID().uuidString
 	var name: String
+	/// what the preset is for (shown in the list)
+	var desc: String?
 	var options: Options
 	/// uuid of the CertificatePair (nil = the certificate selected in the app)
 	var certificateUUID: String?
@@ -77,8 +79,8 @@ final class SigningPresetStore: ObservableObject {
 	}
 
 	@discardableResult
-	func add(name: String, options: Options, certificateUUID: String?) -> SigningPreset {
-		let preset = SigningPreset(name: name, options: options, certificateUUID: certificateUUID)
+	func add(name: String, desc: String? = nil, options: Options, certificateUUID: String?) -> SigningPreset {
+		let preset = SigningPreset(name: name, desc: (desc?.isEmpty ?? true) ? nil : desc, options: options, certificateUUID: certificateUUID)
 		presets.append(preset)
 		if defaultID == nil { defaultID = preset.id }
 		return preset
@@ -92,7 +94,7 @@ final class SigningPresetStore: ObservableObject {
 	func binding(for id: String) -> Binding<SigningPreset>? {
 		guard presets.contains(where: { $0.id == id }) else { return nil }
 		return Binding(
-			get: { self.presets.first(where: { $0.id == id }) ?? SigningPreset(name: "", options: Options.defaultOptions) },
+			get: { self.presets.first(where: { $0.id == id }) ?? SigningPreset(name: "", desc: nil, options: Options.defaultOptions) },
 			set: { new in
 				if let index = self.presets.firstIndex(where: { $0.id == id }) { self.presets[index] = new }
 			}
@@ -183,6 +185,7 @@ final class QuickSign: ObservableObject {
 		UIImpactFeedbackGenerator(style: .light).impactOccurred()
 		status = String(format: .localized("Signing %@..."), app.name ?? .localized("Unknown"))
 
+		SigningHistory.pendingPresetName = preset.name
 		FR.signPackageFile(app, using: options, icon: nil, certificate: resolved.certificate) { error in
 			Task { @MainActor in
 				self.status = nil

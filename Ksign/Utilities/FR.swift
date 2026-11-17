@@ -45,8 +45,13 @@ enum FR {
 		using options: Options,
 		icon: UIImage?,
 		certificate: CertificatePair?,
-		completion: @escaping (Error?) -> Void
+		completion userCompletion: @escaping (Error?) -> Void
 	) {
+		// every signing is written to the history
+		let completion: (Error?) -> Void = { error in
+			SigningHistory.record(app: app, options: options, certificate: certificate, error: error)
+			userCompletion(error)
+		}
 		Task.detached {
 			let handler = SigningHandler(app: app, options: options)
 			if !options.onlyModify {

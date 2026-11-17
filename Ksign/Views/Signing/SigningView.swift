@@ -373,6 +373,7 @@ extension SigningView {
 					Storage.shared.deleteApp(for: app)
 				}
                 
+				NotificationCenter.default.post(name: NSNotification.Name("ksign.signFinished"), object: nil)
 				if signAndInstall {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                         NotificationCenter.default.post(

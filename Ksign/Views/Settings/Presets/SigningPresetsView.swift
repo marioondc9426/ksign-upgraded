@@ -34,8 +34,14 @@ struct SigningPresetsView: View {
 						HStack {
 							VStack(alignment: .leading, spacing: 2) {
 								Text(preset.name)
+								if let desc = preset.desc, !desc.isEmpty {
+									Text(desc)
+										.font(.footnote)
+										.foregroundStyle(.secondary)
+										.lineLimit(2)
+								}
 								Text(_subtitle(preset))
-									.font(.footnote)
+									.font(.caption)
 									.foregroundStyle(.secondary)
 							}
 							Spacer()
@@ -68,17 +74,11 @@ struct SigningPresetsView: View {
 				}
 			}
 		}
-		.alert(.localized("New Preset"), isPresented: $_isNaming) {
-			TextField(.localized("Name"), text: $_newName)
-			Button(.localized("Cancel"), role: .cancel) {}
-			Button(.localized("Create")) {
-				let name = _newName.trimmingCharacters(in: .whitespacesAndNewlines)
+		.sheet(isPresented: $_isNaming) {
+			NewPresetSheet { name, desc, options in
 				guard !name.isEmpty else { return }
-				// starts from the current default signing options and the selected certificate
-				_store.add(name: name, options: OptionsManager.shared.options, certificateUUID: Storage.shared.selectedCertificate()?.uuid)
+				_store.add(name: name, desc: desc, options: options, certificateUUID: Storage.shared.selectedCertificate()?.uuid)
 			}
-		} message: {
-			Text(.localized("It starts with your current signing options and certificate."))
 		}
 	}
 
@@ -111,6 +111,10 @@ struct SigningPresetEditView: View {
 			Form {
 				Section(.localized("Preset")) {
 					TextField(.localized("Name"), text: preset.name)
+					TextField(.localized("Description"), text: Binding(
+						get: { preset.wrappedValue.desc ?? "" },
+						set: { preset.wrappedValue.desc = $0.isEmpty ? nil : $0 }
+					), axis: .vertical)
 
 					Picker(.localized("Certificate"), selection: preset.certificateUUID) {
 						Text(.localized("Selected certificate")).tag(String?.none)

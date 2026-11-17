@@ -28,7 +28,7 @@ struct BackupRestoreView: View {
 				}
 				.disabled(_isRestoring)
 			} footer: {
-				Text(.localized("The backup is a zip with your sources and certificates (including their passwords, as plain text). Keep it private. Restoring only adds what is missing, nothing is replaced."))
+				Text(.localized("The backup is a zip with your sources, certificates (including their passwords, as plain text) and signing presets with their tweaks. Keep it private. Restoring only adds what is missing, nothing is replaced."))
 			}
 
 			if _isRestoring {
@@ -67,8 +67,8 @@ struct BackupRestoreView: View {
 			do {
 				let result = try await BackupManager.restore(from: url)
 				_message = String(
-					format: .localized("Restored %lld sources and %lld certificates (%lld already here)"),
-					result.sources, result.certificates, result.skipped
+					format: .localized("Restored %lld sources, %lld certificates and %lld presets (%lld already here)"),
+						result.sources, result.certificates, result.presets, result.skipped
 				)
 			} catch {
 				_message = error.localizedDescription

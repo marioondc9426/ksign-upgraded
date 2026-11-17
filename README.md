@@ -14,6 +14,7 @@ Fork of [Ksign](https://github.com/Nyasami/Ksign), the Esign-like codesigning ap
 - **Update notifications** (setting): checks your sources when the app opens and in the background, and notifies about new versions
 - **Auto source with every version**: the *Update Source* workflow archives each build as its own release and keeps a source with all of them. Add `https://raw.githubusercontent.com/marioondc9426/ksign-upgraded/source/source.json` in Ksign to get updates of the app itself (and any ipa you put in a release)
 - **New update alert**: every time the app opens and something has a new version, an alert offers to update it. With *Sign updates automatically* (on by default) the update is signed again with the old options and certificate and replaces the old one
+- **Home tab**: a hello, Quick Sign & Install for your downloaded apps and a button to import an IPA into the library
 - **Signing presets**: save options + certificate as a preset (from the signing screen or Settings > Signing Presets), apply it with one tap, and add rules that change name, identifier, certificate or tweaks for specific apps (`com.google.*` style wildcards)
 - **Quick Sign & Install**: in the library, tap an app and pick Quick Sign & Install to sign it with your default preset and open the install sheet right away
 - **Backup & Restore**: sources and your own certificates in one zip (the certificates shipped inside the app are not exported)

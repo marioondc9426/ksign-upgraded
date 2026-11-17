@@ -18,7 +18,7 @@ Fork of [Ksign](https://github.com/Nyasami/Ksign), the Esign-like codesigning ap
 - **Signing presets**: save options + certificate as a preset (from the signing screen or Settings > Signing Presets), apply it with one tap, and add rules that change name, identifier, certificate or tweaks for specific apps (`com.google.*` style wildcards)
 - **Quick Sign & Install**: in the library, tap an app and pick Quick Sign & Install to sign it with your default preset and open the install sheet right away
 - **TrollStore install**: new install method that sends the signed IPA to TrollStore (only offered where the CoreTrust bug exists: iOS 14.0 to 16.6.1 and 17.0). Settings > Installation also shows if TrollStore and AppSync Unified are found
-- **AppSync**: on a jailbroken device with AppSync Unified you can skip signing (setting in Installation)
+- **AppSync**: on a jailbroken device with AppSync Unified turn on *Sign without certificate* (Settings > Installation) and every signing, bulk signing, update and re-sign uses a fake (ad-hoc) signature, no certificate needed
 - **Presets in Bulk Signing**: apply a preset, with its per-app rules, to every selected app at once
 - **Certificate alerts**: warns 3 days before a certificate ends, and when you add a certificate that lasts longer than the one your signed apps use
 - **Bulk Re-sign** (Settings): sign your signed apps again with another certificate in one go, older certificates are pre-selected

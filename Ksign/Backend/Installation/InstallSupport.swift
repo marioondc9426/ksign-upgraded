@@ -51,8 +51,18 @@ enum AppSyncSupport {
 		].contains { FileManager.default.fileExists(atPath: $0) }
 	}
 
-	/// setting: with AppSync installed, skip the signing and only modify the app
+	/// setting: sign with a fake (ad-hoc) signature, no certificate needed.
+	/// AppSync Unified makes installd accept it, but the binary still needs a signature, so "only modify" would not work
 	static var shouldSkipSigning: Bool {
-		UserDefaults.standard.bool(forKey: skipKey) && isInstalled
+		UserDefaults.standard.bool(forKey: skipKey)
+	}
+
+	/// turns `options` into "ad-hoc sign, no certificate" when the setting is on
+	static func apply(_ options: inout Options) {
+		guard shouldSkipSigning else { return }
+		options.doAdhocSigning = true
+		options.onlyModify = false
+		// the random suffix only exists to dodge PPQ checks of real certificates
+		options.ppqProtection = false
 	}
 }

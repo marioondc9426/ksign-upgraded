@@ -338,6 +338,7 @@ extension SigningView {
 // MARK: - Extension: View (import)
 extension SigningView {
 	private func _start() {
+		AppSyncSupport.apply(&_temporaryOptions)
 		guard _selectedCert() != nil || _temporaryOptions.doAdhocSigning || _temporaryOptions.onlyModify else {
 			UIAlertController.showAlertWithOk(
 				title: .localized("No Certificate"),
@@ -346,8 +347,6 @@ extension SigningView {
 			)
 			return
 		}
-
-		if AppSyncSupport.shouldSkipSigning { _temporaryOptions.onlyModify = true }
 
 		let generator = UIImpactFeedbackGenerator(style: .light)
 		generator.impactOccurred()

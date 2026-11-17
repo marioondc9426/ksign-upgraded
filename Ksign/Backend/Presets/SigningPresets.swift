@@ -111,7 +111,7 @@ final class SigningPresetStore: ObservableObject {
 		let certificate = certificateUUID.flatMap { Storage.shared.certificate(withUUID: $0) }
 			?? Storage.shared.selectedCertificate()
 
-		if AppSyncSupport.shouldSkipSigning { options.onlyModify = true }
+		AppSyncSupport.apply(&options)
 
 		// same things the signing screen does when it opens
 		options.appName = nil

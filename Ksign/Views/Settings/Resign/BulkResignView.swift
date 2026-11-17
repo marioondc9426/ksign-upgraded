@@ -136,7 +136,7 @@ struct BulkResignView: View {
 		options.appIdentifier = nil
 		options.appVersion = nil
 		options.removeApp = false
-		if AppSyncSupport.shouldSkipSigning { options.onlyModify = true }
+		AppSyncSupport.apply(&options)
 		return options
 	}
 

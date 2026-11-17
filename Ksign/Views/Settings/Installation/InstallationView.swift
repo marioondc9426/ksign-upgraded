@@ -47,13 +47,11 @@ struct InstallationView: View {
                     Text(verbatim: AppSyncSupport.isInstalled ? String.localized("Found") : String.localized("Not found"))
                         .foregroundStyle(.secondary)
                 }
-                if AppSyncSupport.isInstalled {
-                    Toggle(.localized("Skip signing (AppSync)"), isOn: $_appSyncSkip)
-                }
+                Toggle(.localized("Sign without certificate (AppSync)"), isOn: $_appSyncSkip)
             } header: {
                 Text(.localized("This device"))
             } footer: {
-                Text(.localized("TrollStore install sends the ipa to TrollStore, which installs it with a permanent signature (needs iOS 14.0 to 16.6.1 or 17.0 and TrollStore installed). With AppSync Unified on a jailbroken device the apps do not need a valid signature, so signing can be skipped."))
+                Text(.localized("TrollStore install sends the ipa to TrollStore, which installs it with a permanent signature (needs iOS 14.0 to 16.6.1 or 17.0 and TrollStore installed). With AppSync Unified on a jailbroken device apps do not need a valid signature, so with the switch on Ksign signs them with a fake (ad-hoc) signature and no certificate. The status above may say Not found even when it is installed, because iOS can hide the tweak files from apps."))
             }
 
             if _installationMethod == 0 {

@@ -342,6 +342,7 @@ extension BulkSigningView {
 		
 		for var config in _configs {
 			config.options = _withSharedTweaks(config.options)
+			AppSyncSupport.apply(&config.options)
 			if config.options.doAdhocSigning || config.options.onlyModify || chosen.isEmpty {
 				let cert = _selectedCert()
 				jobs.append(SignJob(app: config.app, options: config.options, icon: config.icon, cert: cert, certName: cert?.nickname ?? "-"))
@@ -355,7 +356,7 @@ extension BulkSigningView {
 	}
 
 	private func _start() {
-		let canSign = !_multiCerts.isEmpty || _selectedCert() != nil || _configs.allSatisfy { $0.options.doAdhocSigning || $0.options.onlyModify }
+		let canSign = AppSyncSupport.shouldSkipSigning || !_multiCerts.isEmpty || _selectedCert() != nil || _configs.allSatisfy { $0.options.doAdhocSigning || $0.options.onlyModify }
 		guard canSign else {
 			UIAlertController.showAlertWithOk(
 				title: .localized("No Certificate"),

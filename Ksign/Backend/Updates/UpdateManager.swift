@@ -102,6 +102,7 @@ final class UpdateManager: ObservableObject {
 		var options = profile.options
 		// the new version number must come from the app itself, not from the old signing
 		options.appVersion = nil
+		AppSyncSupport.apply(&options)
 
 		var certificate: CertificatePair?
 		if let uuid = profile.certificateUUID {

@@ -32,6 +32,7 @@ Fork of [Ksign](https://github.com/Nyasami/Ksign), the Esign-like codesigning ap
 - **Server Diagnostics**: method, address, certificate expiry and a test of the certificate pack download
 - **Multi Sign**: pick several apps and sign them one after another with a progress view
 - **Faster sources**: repositories download concurrently and the app list fills in as each one arrives
+- **Source cache**: the last copy of every source is kept on disk, so the App Store (and the update badges) show up at once when the app opens while the new download runs
 - **App Store info**: source description plus the iTunes description and screenshots in the library info page
 - **Unlock button**: shortcut to the ARM Converter store page from Library and App Store
 - **Better local install**: more reliable Fully Local / Semi Local install server (certificate expiry fallback, Wi-Fi address detection, tap-to-install page)

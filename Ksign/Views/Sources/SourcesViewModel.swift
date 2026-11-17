@@ -33,6 +33,8 @@ final class SourcesViewModel: ObservableObject {
 	// (adding a source while the list was loading used to be ignored until a manual refresh)
 	private var _pendingSources: [AltSource]?
 	private var _pendingRefresh = false
+	/// sources that are on screen only because of the disk cache (still to be downloaded)
+	private var _fromCache = Set<AltSource>()
 	
 	/// registers a repository that was already downloaded (e.g. while validating a new source), so it shows up at once
 	/// call it on the main thread
@@ -57,13 +59,35 @@ final class SourcesViewModel: ObservableObject {
 		// only download what is missing, a new source no longer re-downloads every other source.
 		// a refresh downloads everything again but keeps the old data on screen until each repository is replaced
 		let wanted = Set(sourcesArray)
-		let toFetch = refresh ? sourcesArray : sourcesArray.filter { self.sources[$0] == nil }
+
+		// show what was saved last time at once, the download below replaces it
+		let known = await MainActor.run { sourcesArray.filter { self.sources[$0] == nil }.map { ($0, $0.sourceURL) } }
+		if !known.isEmpty {
+			let cached: [(AltSource, ASRepository)] = await Task.detached(priority: .userInitiated) {
+				known.compactMap { entry in
+					guard let url = entry.1, let repo = SourceCache.load(url) else { return nil }
+					return (entry.0, repo)
+				}
+			}.value
+			await MainActor.run {
+				for (source, repo) in cached where self.sources[source] == nil {
+					self.sources[source] = repo
+					self._fromCache.insert(source)
+				}
+			}
+		}
+
+		let toFetch = await MainActor.run {
+			refresh ? sourcesArray : sourcesArray.filter { self.sources[$0] == nil || self._fromCache.contains($0) }
+		}
 		let total = toFetch.count
 		
 		await MainActor.run {
 			// drop sources that were deleted
 			for key in self.sources.keys where !wanted.contains(key) {
 				self.sources.removeValue(forKey: key)
+				self._fromCache.remove(key)
+				if let url = key.sourceURL { SourceCache.remove(url) }
 			}
 			self.fetchDone = 0
 			self.fetchTotal = total
@@ -86,6 +110,7 @@ final class SourcesViewModel: ObservableObject {
 					await MainActor.run {
 						if let repo {
 							self.sources[source] = repo
+							self._fromCache.remove(source)
 						}
 						self.fetchDone += 1
 					}
@@ -115,6 +140,15 @@ final class SourcesViewModel: ObservableObject {
 	private func _fetchRepository(_ source: AltSource) async -> (AltSource, ASRepository?) {
 		guard let url = source.sourceURL else {
 			return (source, nil)
+		}
+
+		// download the raw json so the exact copy can be cached, and fall back to the old fetcher if that does not decode
+		if
+			let (data, _) = try? await URLSession.shared.data(from: url),
+			let repo = try? JSONDecoder().decode(ASRepository.self, from: data)
+		{
+			SourceCache.save(data, for: url)
+			return (source, repo)
 		}
 
 		return await withCheckedContinuation { continuation in

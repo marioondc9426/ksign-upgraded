@@ -22,7 +22,6 @@ Fork of [Ksign](https://github.com/Nyasami/Ksign), the Esign-like codesigning ap
 - **Presets in Bulk Signing**: apply a preset, with its per-app rules, to every selected app at once
 - **Certificate alerts**: warns 3 days before a certificate ends, and when you add a certificate that lasts longer than the one your signed apps use
 - **Bulk Re-sign** (Settings): sign your signed apps again with another certificate in one go, older certificates are pre-selected
-- **Test tweaks in game** (Home): pick a downloaded app (or import one with +), sign it with your tweaks, then Ksign checks the signed app for the usual causes of a crash (missing libraries, wrong architecture, tweaks that are never loaded, iOS too old), installs it, opens it and asks if it worked. If it crashed you get a report to copy or share. iOS does not let an app watch another app, so the crash itself is reported by you, not detected
 - **Open in Ksign**: open an IPA from Safari, Files or any share sheet and Ksign goes straight to the signing screen
 - **Presets with description and tweaks**: Add preset opens a popup with name, description and the tweaks it injects. Presets (with their tweak files) are part of Backup & Restore
 - **Signing History**: everything you signed, with certificate, preset and result, and a Redo swipe

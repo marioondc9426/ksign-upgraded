@@ -16,7 +16,6 @@ struct HomeView: View {
 
 	@State private var _isImporting = false
 	@State private var _appToSign: AnyApp?
-	@State private var _isTestPicking = false
 
 	@FetchRequest(
 		entity: CertificatePair.entity(),
@@ -87,11 +86,6 @@ struct HomeView: View {
 						Label(.localized("Import IPA to Library"), systemImage: "square.and.arrow.down")
 					}
 
-					Button {
-						_isTestPicking = true
-					} label: {
-						Label(.localized("Test tweaks in game"), systemImage: "gamecontroller")
-					}
 				}
 
 				Section {
@@ -154,9 +148,6 @@ struct HomeView: View {
 					.padding(24)
 					.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
 				}
-			}
-			.sheet(isPresented: $_isTestPicking) {
-				TestPickerView()
 			}
 			.sheet(isPresented: $_isImporting) {
 				FileImporterRepresentableView(

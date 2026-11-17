@@ -14,34 +14,9 @@ final class AppPresenter: ObservableObject {
 	static let shared = AppPresenter()
 
 	@Published var signApp: AnyApp?
-	/// the signed app being tested (shows the tweak test screen)
-	@Published var testApp: AnyApp?
 
-	/// when true, finishing the signing opens the tweak test for the new signed app
-	var isTestFlow = false
-
-	func sign(_ app: AppInfoPresentable, test: Bool) {
-		isTestFlow = test
+	func sign(_ app: AppInfoPresentable) {
 		signApp = AnyApp(base: app)
-	}
-
-	/// called when a signing finished
-	func signingFinished() {
-		guard isTestFlow else { return }
-		isTestFlow = false
-		guard let newest = Self.newestSigned() else { return }
-		// the signing screen is still closing
-		Task { @MainActor in
-			try? await Task.sleep(nanoseconds: 700_000_000)
-			self.testApp = AnyApp(base: newest)
-		}
-	}
-
-	static func newestSigned() -> Signed? {
-		let request = NSFetchRequest<Signed>(entityName: "Signed")
-		request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-		request.fetchLimit = 1
-		return try? Storage.shared.context.fetch(request).first
 	}
 
 	static func newestImportedApp() -> Imported? {
@@ -55,7 +30,7 @@ final class AppPresenter: ObservableObject {
 	nonisolated static func openSignForNewestImported() {
 		Task { @MainActor in
 			guard let app = newestImportedApp() else { return }
-			AppPresenter.shared.sign(app, test: false)
+			AppPresenter.shared.sign(app)
 		}
 	}
 }

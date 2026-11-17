@@ -35,12 +35,6 @@ struct FeatherApp: App {
 					.fullScreenCover(item: $_presenter.signApp) { app in
 						SigningView(app: app.base)
 					}
-					.sheet(item: $_presenter.testApp) { app in
-						TweakTestView(app: app.base)
-					}
-					.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ksign.signFinished"))) { _ in
-						_presenter.signingFinished()
-					}
 					.transition(.move(edge: .top).combined(with: .opacity))
 			}
 			.animation(.smooth, value: downloadManager.manualDownloads.description)

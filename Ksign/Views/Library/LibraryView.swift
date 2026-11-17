@@ -15,6 +15,7 @@ struct LibraryView: View {
 	
 	@State private var _selectedInfoAppPresenting: AnyApp?
 	@State private var _selectedSigningAppPresenting: AnyApp?
+	@ObservedObject private var _quickSign = QuickSign.shared
 	@State private var _selectedInstallAppPresenting: AnyApp?
 	@State private var _selectedAppDylibsPresenting: AnyApp?
 	@State private var _isBulkSigningPresenting = false
@@ -133,8 +134,9 @@ struct LibraryView: View {
                 }
             }
 			.toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .topBarLeading) {
                     EditButton()
+                    UnlockStoreButton()
                 }
                 if _isEditMode.isEditing {
 					ToolbarItemGroup(placement: .topBarTrailing) {
@@ -171,6 +173,16 @@ struct LibraryView: View {
 				}
 			}
             .environment(\.editMode, $_isEditMode)
+			.overlay {
+				if let status = _quickSign.status {
+					VStack(spacing: 12) {
+						ProgressView()
+						Text(status).font(.footnote)
+					}
+					.padding(24)
+					.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+				}
+			}
 			.sheet(item: $_selectedInfoAppPresenting) { app in
 				LibraryInfoView(app: app.base)
 			}
@@ -259,6 +271,12 @@ extension LibraryView {
             _isImportingPresenting = true
         }
         Button(.localized("Import from URL"), systemImage: "globe") {
+            // a link you just copied is filled in for you
+            if _alertDownloadString.isEmpty,
+               let copied = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+               copied.hasPrefix("http"), URL(string: copied) != nil {
+                _alertDownloadString = copied
+            }
             _isDownloadingPresenting = true
         }
     }

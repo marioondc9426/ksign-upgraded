@@ -17,6 +17,11 @@ struct DownloadButtonView: View {
 	@State private var downloadProgress: Double = 0
 	@State private var cancellable: AnyCancellable?
 
+	/// you already have this bundle identifier in the library and the source has a newer version
+	private var _hasUpdate: Bool {
+		Storage.shared.hasUpdate(bundleID: app.id, sourceVersion: app.currentVersion)
+	}
+
 	var body: some View {
 		ZStack {
 			if let currentDownload = downloadManager.getDownload(by: app.currentUniqueId) {
@@ -40,11 +45,13 @@ struct DownloadButtonView: View {
 				.compatTransition()
 			} else {
 				Button {
-					if let url = app.currentDownloadUrl {
+					if _hasUpdate {
+						UpdateManager.shared.start(app)
+					} else if let url = app.currentDownloadUrl {
 						_ = downloadManager.startDownload(from: url, id: app.currentUniqueId)
 					}
 				} label: {
-					Text(.localized("Get"))
+					Text(verbatim: _hasUpdate ? String.localized("Update") : String.localized("Get"))
 						.lineLimit(0)
 						.font(.headline.bold())
 						.foregroundStyle(Color.accentColor)

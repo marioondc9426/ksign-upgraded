@@ -151,6 +151,19 @@ final class SigningHandler: NSObject {
 			return
 		}
 		
+        // remember how this app was signed so an update can be signed the same way (see UpdateManager)
+        if let originalID = _app.identifier, !originalID.isEmpty {
+            SignProfiles.save(
+                SignProfile(
+                    options: _options,
+                    certificateUUID: (_options.doAdhocSigning || _options.onlyModify) ? nil : appCertificate?.uuid,
+                    version: _app.version,
+                    date: Date()
+                ),
+                for: originalID
+            )
+        }
+
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             let bundle = Bundle(url: appUrl)
 

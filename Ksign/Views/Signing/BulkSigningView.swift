@@ -35,6 +35,8 @@ struct BulkSigningView: View {
 	@State private var _isFilePickerPresenting = false
 	@State private var _isImagePickerPresenting = false
 	@State private var _isSigning = false
+	/// tweaks added here go into every app (each app can still have its own under Modify > Tweaks)
+	@State private var _sharedTweaks: Options
 	@State private var _multiCerts: Set<Int> = []   // Multi Sign: extra certificates (empty = just the one chosen above)
 	@State private var _signDone = 0
 	@State private var _signTotal = 0
@@ -51,6 +53,9 @@ struct BulkSigningView: View {
 		
 		let defaultOptions = OptionsManager.shared.options
 		__configs = State(initialValue: apps.map { AppSignConfig(app: $0, options: defaultOptions, icon: nil) })
+		var shared = defaultOptions
+		shared.injectionFiles = []   // only what is added here is new, the defaults are already in every app
+		__sharedTweaks = State(initialValue: shared)
 	}
 
 	var body: some View {
@@ -202,6 +207,14 @@ extension BulkSigningView {
 			}
 			
 			NavigationLink {
+				SigningTweaksView(options: $_sharedTweaks)
+			} label: {
+				LabeledContent(String.localized("Tweaks (All Apps)")) {
+					Text(_sharedTweaks.injectionFiles.isEmpty ? String.localized("None") : "\(_sharedTweaks.injectionFiles.count)")
+				}
+			}
+			
+			NavigationLink {
 				MultiCertificatePickerView(selection: $_multiCerts)
 			} label: {
 				LabeledContent(String.localized("Multi Sign")) {
@@ -266,6 +279,19 @@ extension BulkSigningView {
 		return String(format: .localized("%lld certificates"), _multiCerts.count)
 	}
 	
+	/// adds the tweaks chosen for all apps on top of the app's own options
+	private func _withSharedTweaks(_ options: Options) -> Options {
+		guard !_sharedTweaks.injectionFiles.isEmpty else { return options }
+		var merged = options
+		for tweak in _sharedTweaks.injectionFiles where !merged.injectionFiles.contains(tweak) {
+			merged.injectionFiles.append(tweak)
+		}
+		merged.injectPath = _sharedTweaks.injectPath
+		merged.injectFolder = _sharedTweaks.injectFolder
+		merged.injectIntoExtensions = _sharedTweaks.injectIntoExtensions
+		return merged
+	}
+	
 	private struct SignJob {
 		let app: AppInfoPresentable
 		let options: Options
@@ -279,7 +305,8 @@ extension BulkSigningView {
 		let chosen = _multiCerts.sorted().compactMap { certificates.indices.contains($0) ? certificates[$0] : nil }
 		var jobs: [SignJob] = []
 		
-		for config in _configs {
+		for var config in _configs {
+			config.options = _withSharedTweaks(config.options)
 			if config.options.doAdhocSigning || config.options.onlyModify || chosen.isEmpty {
 				let cert = _selectedCert()
 				jobs.append(SignJob(app: config.app, options: config.options, icon: config.icon, cert: cert, certName: cert?.nickname ?? "-"))

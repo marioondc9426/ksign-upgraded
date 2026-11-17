@@ -1,0 +1,77 @@
+name: Update Source
+
+# keeps every ipa of this repo in an altstore-style source:
+#   https://raw.githubusercontent.com/<owner>/<repo>/source/source.json
+# each beta build is archived in its own release (build-<sha>) so old versions are never lost
+
+on:
+  workflow_run:
+    workflows: ["Beta Build"]
+    types: [completed]
+  release:
+    types: [published, edited, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-source
+  cancel-in-progress: false
+
+jobs:
+  source:
+    name: Update Source
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Archive beta build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view beta --json targetCommitish > beta.json 2>/dev/null; then
+            SHA=$(jq -r .targetCommitish beta.json)
+            SHORT=${SHA:0:7}
+            if ! gh release view "build-$SHORT" > /dev/null 2>&1; then
+              mkdir -p dl out
+              gh release download beta -p "*.ipa" -D dl
+              IPA=$(ls dl/*.ipa | head -n 1)
+              COUNT=$(git rev-list --count "$SHA")
+              VERSION=$(python3 scripts/source_tools.py stamp "$IPA" "$COUNT" "out/KsignPlus-$SHORT.ipa")
+              gh release create "build-$SHORT" "out/KsignPlus-$SHORT.ipa" \
+                --title "Ksign+ $VERSION" \
+                --notes "Archived build of $SHA" \
+                --prerelease --latest=false --target "$SHA"
+            fi
+          fi
+
+      - name: Build source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}"
+          if ! git clone --branch source --depth 1 "$REMOTE" site; then
+            mkdir -p site
+            git -C site init -b source
+            git -C site remote add origin "$REMOTE"
+          fi
+          python3 scripts/source_tools.py build "${{ github.repository }}" site
+
+      - name: Publish source
+        working-directory: site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source.json
+          if git diff --cached --quiet; then
+            echo "nothing changed"
+            exit 0
+          fi
+          git commit -m "update source"
+          git push origin source

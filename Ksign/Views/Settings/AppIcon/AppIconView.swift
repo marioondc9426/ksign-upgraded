@@ -25,7 +25,7 @@ struct AppIconView: View {
         AppIconOption(
             id: "primary",
             title: "Default",
-            subtitle: "Ksign",
+            subtitle: "Ksign+",
             iconName: "AppIcon",
             alternateIconName: nil
         ),

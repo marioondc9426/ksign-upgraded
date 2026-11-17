@@ -1,42 +1,42 @@
 
 <img src="https://github.com/user-attachments/assets/986892f9-c32f-448d-a24e-ba8659203fbf" height="200">
 
-# Ksign 
-[![GitHub Release](https://img.shields.io/github/v/release/nyasami/ksign?style=for-the-badge&color=3c94fc)](https://github.com/nyasami/ksign/releases/latest) 
-[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/nyasami/ksign/total?style=for-the-badge&color=6bc563)](https://github.com/nyasami/ksign/releases)
+# Ksign+ (upgraded fork)
+[![Beta Build](https://img.shields.io/github/actions/workflow/status/marioondc9426/ksign-upgraded/beta.yml?style=for-the-badge&label=beta%20build)](https://github.com/marioondc9426/ksign-upgraded/actions/workflows/beta.yml)
+[![Upstream](https://img.shields.io/badge/upstream-Nyasami%2FKsign-3c94fc?style=for-the-badge)](https://github.com/Nyasami/Ksign)
 
-Yet another codesigning app, have you ever wondered what if Feather and Esign had a child?
+Fork of [Ksign](https://github.com/Nyasami/Ksign), the Esign-like codesigning app built on Feather, with extra features on top.
 
-## Why?
-Since Esign is end of service so people been moving to other signing apps, but Esign was a really big part of the community, so with the help of Feather as the base app, I tried to recreate Esign as close as possible so you guys can easier to get familiar and less app switching for smooth sideloading.
+## What's new in this fork
+- **Update badge in the App Store tab**: if an app in your library (imported or signed) has the same bundle identifier as an app in a source and the source has a newer version, the button shows **Update** instead of **Get**. Matching is by bundle identifier only (like `com.google.youtube`), never by name, and versions are compared numerically (1.10 is newer than 1.9)
+- **Updates tab**: every app in your library with a newer version in your sources, with Update and Update All. Also reachable from the App Store tab (badge with the count)
+- **Sign updates automatically** (setting): updating an app you signed before signs the new version again with the same options and certificate
+- **Update notifications** (setting): checks your sources when the app opens and in the background, and notifies about new versions
+- **Auto source with every version**: the *Update Source* workflow archives each build as its own release and keeps a source with all of them. Add `https://raw.githubusercontent.com/marioondc9426/ksign-upgraded/source/source.json` in Ksign to get updates of the app itself (and any ipa you put in a release)
+- **New update alert**: every time the app opens and something has a new version, an alert offers to update it. With *Sign updates automatically* (on by default) the update is signed again with the old options and certificate and replaces the old one
+- **Signing presets**: save options + certificate as a preset (from the signing screen or Settings > Signing Presets), apply it with one tap, and add rules that change name, identifier, certificate or tweaks for specific apps (`com.google.*` style wildcards)
+- **Quick Sign & Install**: in the library, tap an app and pick Quick Sign & Install to sign it with your default preset and open the install sheet right away
+- **Backup & Restore**: sources and your own certificates in one zip (the certificates shipped inside the app are not exported)
+- **Bulk signing with tweaks**: add tweaks to all selected apps at once, or per app
+- **Server Diagnostics**: method, address, certificate expiry and a test of the certificate pack download
+- **Multi Sign**: pick several apps and sign them one after another with a progress view
+- **Faster sources**: repositories download concurrently and the app list fills in as each one arrives
+- **App Store info**: source description plus the iTunes description and screenshots in the library info page
+- **Unlock button**: shortcut to the ARM Converter store page from Library and App Store
+- **Better local install**: more reliable Fully Local / Semi Local install server (certificate expiry fallback, Wi-Fi address detection, tap-to-install page)
+- **Share Logs**: export diagnostics from the install screen to help debug problems
 
-Another reason is this app was built specifically for Khoindvn to share his certificates, allowing more people to access to sideloading without even have to buy a certificate!
+## Building
+Pushes to `main` run the **Beta Build** workflow (macOS runner) and publish an unsigned `KsignPlus.ipa` to the Beta release of this fork. You can also start it by hand from the Actions tab (Run workflow) without pushing anything.
 
-## Help
-You can create your Issue at [Issue](https://github.com/Nyasami/Ksign-public/issues), this will also be the place for you to request a new feature so feel free to make one!
-
-You can also join Ksign Discord [here](https://discord.gg/sfbZfQzVdQ) for better communication.
-
-## Download
-Go to [Releases](https://github.com/Nyasami/Ksign-public/releases) and download the newest ipa from there.
-
-## Star History
-
-<a href="https://www.star-history.com/?repos=nyasami%2Fksign&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=nyasami/ksign&type=date&theme=dark&legend=top-left&sealed_token=qF8r8F35jlacPKoDFdro6gYpDDUbVGloo-UPsBBqrAufefIWUZ7MY_TmH4j_UB2ailJBO_OYzkYV-jye9GlGJR-PfMID-XHRW52SHl--bD976zJlaiDwOA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=nyasami/ksign&type=date&legend=top-left&sealed_token=qF8r8F35jlacPKoDFdro6gYpDDUbVGloo-UPsBBqrAufefIWUZ7MY_TmH4j_UB2ailJBO_OYzkYV-jye9GlGJR-PfMID-XHRW52SHl--bD976zJlaiDwOA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=nyasami/ksign&type=date&legend=top-left&sealed_token=qF8r8F35jlacPKoDFdro6gYpDDUbVGloo-UPsBBqrAufefIWUZ7MY_TmH4j_UB2ailJBO_OYzkYV-jye9GlGJR-PfMID-XHRW52SHl--bD976zJlaiDwOA" />
- </picture>
-</a>
+## Original project
+Ksign was built because Esign reached end of service, using Feather as the base, and for Khoindvn to share certificates. Upstream issues and Discord: [Issue](https://github.com/Nyasami/Ksign-public/issues), [Discord](https://discord.gg/sfbZfQzVdQ).
 
 ## Special thanks
-- Feather by [claration](https://github.com/claration/Feather)  
-
+- Feather by [claration](https://github.com/claration/Feather)
+- Ksign by [Nyasami](https://github.com/Nyasami/Ksign)
 - Product manager Khoindvn
-
 - And you! for using the app ❤️
 
 ## Disclaimer
-
-This project is maintained here, on GitHub. Releases are distributed here, on GitHub. We do not currently have a project website outside of this repository. Please make sure to avoid any sites that host our software as they are often malicious and are there to mislead to user.
+This is an unofficial fork. Releases of this fork are distributed from this repository only. Avoid sites that host the app, they are often malicious.

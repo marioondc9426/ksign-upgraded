@@ -229,9 +229,14 @@ extension DownloadManager: URLSessionDownloadDelegate {
 			let destinationURL = downloadDir.appendingPathComponent(suggestedFileName)
 			try FileManager.default.removeFileIfNeeded(at: destinationURL)
 			try FileManager.default.moveItem(at: location, to: destinationURL)
+			let downloadID = download.id
 			self.handlePachageFile(url: destinationURL, dl: download) { err in
 				if let error = err {
 					print("Error handling downloaded file: \(error.localizedDescription)")
+				}
+				// updates: sign the new version with the previous settings when the setting is on
+				Task { @MainActor in
+					UpdateManager.shared.importFinished(downloadID: downloadID, error: err)
 				}
 			}
 		} catch {

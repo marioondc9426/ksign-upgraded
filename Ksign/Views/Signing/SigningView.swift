@@ -25,6 +25,9 @@ struct SigningView: View {
 	@State private var _isSigning = false
 	@State private var _selectedPhoto: PhotosPickerItem? = nil
 	@State var appIcon: UIImage?
+	@ObservedObject private var _presets = SigningPresetStore.shared
+	@State private var _isNamingPreset = false
+	@State private var _presetName = ""
 	
 	var signAndInstall: Bool = false
 	
@@ -67,6 +70,7 @@ struct SigningView: View {
 			Form {
 				_customizationOptions(for: app)
 				_cert()
+				_presetSection()
 				_customizationProperties(for: app)
 			}
 			.disabled(_isSigning)
@@ -125,6 +129,13 @@ struct SigningView: View {
 				}
 			}
 			.animation(.smooth, value: _isSigning)
+			.alert(.localized("Save as Preset"), isPresented: $_isNamingPreset) {
+				TextField(.localized("Name"), text: $_presetName)
+				Button(.localized("Cancel"), role: .cancel) {}
+				Button(.localized("Save")) { _savePreset() }
+			} message: {
+				Text(.localized("Saves these options and the certificate. Name, identifier and version are not saved."))
+			}
 		}
 		.onAppear {
 			// ppq protection
@@ -217,6 +228,45 @@ extension SigningView {
 		}
 	}
 	
+	@ViewBuilder
+	private func _presetSection() -> some View {
+		NBSection(.localized("Presets")) {
+			if !_presets.presets.isEmpty {
+				Menu {
+					ForEach(_presets.ordered) { preset in
+						Button(preset.name) { _apply(preset) }
+					}
+				} label: {
+					LabeledContent(.localized("Apply Preset")) {
+						Image(systemName: "chevron.up.chevron.down").font(.footnote).foregroundStyle(.secondary)
+					}
+				}
+			}
+			Button(.localized("Save as Preset")) {
+				_presetName = ""
+				_isNamingPreset = true
+			}
+		}
+	}
+
+	private func _apply(_ preset: SigningPreset) {
+		let resolved = _presets.resolve(preset, for: app)
+		_temporaryOptions = resolved.options
+		if let cert = resolved.certificate, let index = certificates.firstIndex(of: cert) {
+			_temporaryCertificate = index
+		}
+	}
+
+	private func _savePreset() {
+		let name = _presetName.trimmingCharacters(in: .whitespacesAndNewlines)
+		guard !name.isEmpty else { return }
+		var options = _temporaryOptions
+		options.appName = nil
+		options.appIdentifier = nil
+		options.appVersion = nil
+		_presets.add(name: name, options: options, certificateUUID: _selectedCert()?.uuid)
+	}
+
 	@ViewBuilder
 	private func _cert() -> some View {
 		NBSection(.localized("Signing")) {

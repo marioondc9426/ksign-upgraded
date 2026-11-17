@@ -11,6 +11,8 @@ import UserNotifications
 
 struct AppFeaturesView: View {
     @StateObject private var _optionsManager = OptionsManager.shared
+    @AppStorage(UpdateManager.autoSignKey) private var _autoSignUpdates = true
+    @AppStorage(UpdateManager.notifyKey) private var _notifyUpdates = false
     
     var body: some View {
         NBList(.localized("App Features")) {
@@ -44,6 +46,26 @@ struct AppFeaturesView: View {
                 }
             } footer: {
                 Text(.localized("This will save the App Store downloads to the Downloads folder, turning this off will help reduce disk usage."))
+            }
+            Section {
+                Toggle(isOn: $_autoSignUpdates) {
+                    Label(.localized("Sign updates automatically"), systemImage: "signature")
+                }
+            } footer: {
+                Text(.localized("When you update an app you signed before, the new version is signed again with the same options and certificate right after it downloads."))
+            }
+            Section {
+                Toggle(isOn: $_notifyUpdates) {
+                    Label(.localized("Notify about app updates"), systemImage: "bell.badge")
+                }
+                .onChange(of: _notifyUpdates) { enabled in
+                    guard enabled else { UpdateChecker.setBadge(0); return }
+                    UpdateChecker.requestAuthorization { granted in
+                        if !granted { _notifyUpdates = false } else { UpdateChecker.schedule() }
+                    }
+                }
+            } footer: {
+                Text(.localized("Checks your sources when the app opens and now and then in the background (iOS decides when), and notifies about new versions of apps in your library."))
             }
         }
         .onChange(of: _optionsManager.options) { _ in

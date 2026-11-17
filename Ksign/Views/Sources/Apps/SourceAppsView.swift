@@ -146,6 +146,14 @@ struct SourceAppsView: View {
                         Text(.localized("Sources"))
                     }
                 }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    UpdatesLinkButton()
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    UnlockStoreButton()
+                }
             }
             
             NBToolbarButton(

@@ -19,6 +19,7 @@ struct FeatherApp: App {
     @StateObject var extractManager = ExtractManager.shared
 	@StateObject var logsManager = LogsManager.shared
 	let storage = Storage.shared
+	@State private var _pendingUpdates: [OutdatedApp] = []
 
 	var body: some Scene {
 		WindowGroup {
@@ -34,6 +35,28 @@ struct FeatherApp: App {
 			}
 			.animation(.smooth, value: downloadManager.manualDownloads.description)
             .animation(.smooth, value: extractManager.extractItems.description)
+			.onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+				Task { @MainActor in
+					await UpdateChecker.check()
+					_pendingUpdates = await UpdateChecker.updatesForAlert()
+				}
+			}
+			.alert(
+				.localized("New update"),
+				isPresented: Binding(get: { !_pendingUpdates.isEmpty }, set: { if !$0 { _pendingUpdates = [] } })
+			) {
+				Button(.localized("Update")) {
+					UpdateManager.shared.updateAll(_pendingUpdates)
+					_pendingUpdates = []
+				}
+				Button(.localized("Later"), role: .cancel) { _pendingUpdates = [] }
+			} message: {
+				Text(_pendingUpdates.prefix(5).map { "\($0.app.currentName) \($0.localVersion) → \($0.newVersion)" }.joined(separator: "\n")
+					+ (_pendingUpdates.count > 5 ? "\n+\(_pendingUpdates.count - 5)" : ""))
+			}
+			.onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+				UpdateChecker.schedule()
+			}
 			.onReceive(accentColorManager.objectWillChange) { _ in
 				accentColorManager.updateGlobalTintColor()
 			}
@@ -84,6 +107,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         _createPipeline()
         _createSourcesDirectory()
+        UpdateChecker.register()
         if !UserDefaults.standard.bool(forKey: "hasInitializedBuiltInSources") {
             _initializeBuiltInSources()
             UserDefaults.standard.set(true, forKey: "hasInitializedBuiltInSources")

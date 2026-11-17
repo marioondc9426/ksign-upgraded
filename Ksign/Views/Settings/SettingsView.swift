@@ -83,6 +83,15 @@ struct SettingsView: View {
 					NavigationLink(destination: InstallationView()) {
                         Label(.localized("Installation"), systemImage: "server.rack")
                     }
+					NavigationLink(destination: ServerDiagnosticsView()) {
+                        Label(.localized("Server Diagnostics"), systemImage: "stethoscope")
+                    }
+					NavigationLink(destination: SigningPresetsView()) {
+                        Label(.localized("Signing Presets"), systemImage: "bolt.badge.checkmark")
+                    }
+					NavigationLink(destination: BackupRestoreView()) {
+                        Label(.localized("Backup & Restore"), systemImage: "externaldrive.badge.timemachine")
+                    }
 				}
 				
 				_directories()

@@ -24,6 +24,7 @@ struct LibraryCellView: View {
 	@Binding var selectedAppDylibsPresenting: AnyApp?
 	@Binding var selectedApps: Set<String>
 	@State private var _showActionSheet = false
+	@ObservedObject private var _presets = SigningPresetStore.shared
 	
 	private var _isSelected: Bool {
 		selectedApps.contains(app.uuid ?? "")
@@ -153,7 +154,18 @@ extension LibraryCellView {
 	}
 	
 	@ViewBuilder
+	private func _quickSignButtons(for app: AppInfoPresentable) -> some View {
+		ForEach(_presets.ordered) { preset in
+			Button(preset.id == _presets.defaultID ? String.localized("Quick Sign & Install") : String(format: .localized("Quick Sign: %@"), preset.name)) {
+				QuickSign.shared.run(app, preset: preset)
+			}
+		}
+	}
+	
+	@ViewBuilder
 	private func _contextActionsExtra(for app: AppInfoPresentable) -> some View {
+		_quickSignButtons(for: app)
+
 		if app.isSigned {
 			if let id = app.identifier {
 				Button(.localized("Open"), systemImage: "app.badge.checkmark") {
@@ -209,6 +221,8 @@ extension LibraryCellView {
 				selectedInstallAppPresenting = AnyApp(base: app, archive: true)
 			}
 		}
+		
+		_quickSignButtons(for: app)
 		
 		Button(.localized("Show Dylibs")) {
 			selectedAppDylibsPresenting = AnyApp(base: app)

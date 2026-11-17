@@ -51,6 +51,10 @@ struct BackupRestoreView: View {
 	}
 
 	private func _export() {
+		if JailbreakDetector.blocksCertificates {
+			_message = .localized("Backups are turned off on a jailbroken device because they contain your certificates and their passwords.")
+			return
+		}
 		do {
 			let zip = try BackupManager.export()
 			UIActivityViewController.show(activityItems: [zip])

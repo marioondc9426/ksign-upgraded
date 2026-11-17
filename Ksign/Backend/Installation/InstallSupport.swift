@@ -54,7 +54,7 @@ enum AppSyncSupport {
 	/// setting: sign with a fake (ad-hoc) signature, no certificate needed.
 	/// AppSync Unified makes installd accept it, but the binary still needs a signature, so "only modify" would not work
 	static var shouldSkipSigning: Bool {
-		UserDefaults.standard.bool(forKey: skipKey)
+		UserDefaults.standard.bool(forKey: skipKey) || JailbreakDetector.blocksCertificates
 	}
 
 	/// turns `options` into "ad-hoc sign, no certificate" when the setting is on

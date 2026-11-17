@@ -19,6 +19,7 @@ struct InstallationView: View {
         return methods
     }
     @AppStorage(AppSyncSupport.skipKey) private var _appSyncSkip = false
+    @AppStorage(JailbreakDetector.policyKey) private var _noCertOnJailbreak = true
 
     private var _trollStoreStatus: String {
         if !TrollStoreSupport.coreTrustWorks { return String.localized("Not possible on this iOS") }
@@ -47,11 +48,16 @@ struct InstallationView: View {
                     Text(verbatim: AppSyncSupport.isInstalled ? String.localized("Found") : String.localized("Not found"))
                         .foregroundStyle(.secondary)
                 }
+                LabeledContent(.localized("Jailbreak")) {
+                    Text(verbatim: JailbreakDetector.isJailbroken ? String.localized("Detected") : String.localized("Not detected"))
+                        .foregroundStyle(.secondary)
+                }
+                Toggle(.localized("Never use certificates on a jailbreak"), isOn: $_noCertOnJailbreak)
                 Toggle(.localized("Sign without certificate (AppSync)"), isOn: $_appSyncSkip)
             } header: {
                 Text(.localized("This device"))
             } footer: {
-                Text(.localized("TrollStore install sends the ipa to TrollStore, which installs it with a permanent signature (needs iOS 14.0 to 16.6.1 or 17.0 and TrollStore installed). With AppSync Unified on a jailbroken device apps do not need a valid signature, so with the switch on Ksign signs them with a fake (ad-hoc) signature and no certificate. The status above may say Not found even when it is installed, because iOS can hide the tweak files from apps."))
+                Text(.localized("TrollStore install sends the ipa to TrollStore, which installs it with a permanent signature (needs iOS 14.0 to 16.6.1 or 17.0 and TrollStore installed). On a jailbroken device any tweak or root process can read the files of an app, including your certificate and its password, so with the jailbreak switch on Ksign does not use certificates there at all and signs ad-hoc, backups are disabled and everything else keeps working. With AppSync Unified on a jailbroken device apps do not need a valid signature, so with the switch on Ksign signs them with a fake (ad-hoc) signature and no certificate. The status above may say Not found even when it is installed, because iOS can hide the tweak files from apps."))
             }
 
             if _installationMethod == 0 {

@@ -27,6 +27,7 @@ Fork of [Ksign](https://github.com/Nyasami/Ksign), the Esign-like codesigning ap
 - **Signing History**: everything you signed, with certificate, preset and result, and a Redo swipe
 - **Storage**: size of every app in the library and a one-tap delete of the originals that already have a signed copy
 - **Certificate card on Home**: days left of the certificate that ends first, tap to sign everything again
+- **Jailbreak protection**: Ksign detects a jailbroken device and, with the setting on (default), never uses your certificates there: everything is signed ad-hoc and backups are disabled, since any tweak or root process could read the certificate and its password
 - **Backup & Restore**: sources and your own certificates in one zip (the certificates shipped inside the app are not exported)
 - **Bulk signing with tweaks**: add tweaks to all selected apps at once, or per app
 - **Server Diagnostics**: method, address, certificate expiry and a test of the certificate pack download

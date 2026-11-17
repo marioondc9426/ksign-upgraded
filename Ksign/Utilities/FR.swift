@@ -42,11 +42,14 @@ enum FR {
 	
 	static func signPackageFile(
 		_ app: AppInfoPresentable,
-		using options: Options,
+		using rawOptions: Options,
 		icon: UIImage?,
-		certificate: CertificatePair?,
+		certificate rawCertificate: CertificatePair?,
 		completion userCompletion: @escaping (Error?) -> Void
 	) {
+		// on a jailbroken device the certificate is never used (see JailbreakDetector)
+		let options = JailbreakDetector.enforce(rawOptions)
+		let certificate = (JailbreakDetector.blocksCertificates && !options.onlyModify) ? nil : rawCertificate
 		// every signing is written to the history
 		let completion: (Error?) -> Void = { error in
 			SigningHistory.record(app: app, options: options, certificate: certificate, error: error)

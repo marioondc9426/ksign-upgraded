@@ -7,6 +7,10 @@
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).userTask.*</string>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).updateCheck</string>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>apple-magnifier</string>
+	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

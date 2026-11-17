@@ -34,7 +34,7 @@ enum UpdateChecker {
 	}
 
 	static func schedule() {
-		guard isEnabled else { return }
+		guard isEnabled || CertificateWatcher.alertsOn else { return }
 		let request = BGAppRefreshTaskRequest(identifier: taskID)
 		request.earliestBeginDate = Date(timeIntervalSinceNow: 6 * 60 * 60)
 		try? BGTaskScheduler.shared.submit(request)
@@ -43,6 +43,7 @@ enum UpdateChecker {
 	private static func handle(_ task: BGAppRefreshTask) {
 		schedule()
 		let work = Task { @MainActor in
+			CertificateWatcher.scan()
 			await check(force: true)
 			task.setTaskCompleted(success: true)
 		}

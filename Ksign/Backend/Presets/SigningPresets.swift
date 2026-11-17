@@ -9,6 +9,7 @@
 import Foundation
 import CoreData
 import UIKit
+import SwiftUI
 
 /// changes applied on top of a preset when the app matches `pattern`
 struct PresetRule: Codable, Identifiable, Equatable {
@@ -109,6 +110,8 @@ final class SigningPresetStore: ObservableObject {
 		let certificateUUID = rule?.certificateUUID ?? preset.certificateUUID
 		let certificate = certificateUUID.flatMap { Storage.shared.certificate(withUUID: $0) }
 			?? Storage.shared.selectedCertificate()
+
+		if AppSyncSupport.shouldSkipSigning { options.onlyModify = true }
 
 		// same things the signing screen does when it opens
 		options.appName = nil

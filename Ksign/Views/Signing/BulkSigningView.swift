@@ -58,9 +58,44 @@ struct BulkSigningView: View {
 		__sharedTweaks = State(initialValue: shared)
 	}
 
+	@ObservedObject private var _presets = SigningPresetStore.shared
+
+	@ViewBuilder
+	private func _presetSection() -> some View {
+		if !_presets.presets.isEmpty {
+			Section {
+				Menu {
+					ForEach(_presets.ordered) { preset in
+						Button(preset.name) { _applyPreset(preset) }
+					}
+				} label: {
+					LabeledContent(.localized("Apply Preset to All")) {
+						Image(systemName: "chevron.up.chevron.down").font(.footnote).foregroundStyle(.secondary)
+					}
+				}
+			} footer: {
+				Text(.localized("Sets the options of every app below from the preset, including its rules for specific apps. The certificate chosen below is used for all of them."))
+			}
+		}
+	}
+
+	private func _applyPreset(_ preset: SigningPreset) {
+		for index in _configs.indices {
+			_configs[index].options = _presets.resolve(preset, for: _configs[index].app).options
+		}
+		if
+			let uuid = preset.certificateUUID,
+			let cert = Storage.shared.certificate(withUUID: uuid),
+			let index = certificates.firstIndex(of: cert)
+		{
+			_temporaryCertificate = index
+		}
+	}
+
 	var body: some View {
 		NBNavigationView(.localized("Bulk Signing"), displayMode: .inline) {
 			Form {
+				_presetSection()
                 _cert()
 				
 				ForEach($_configs) { $config in

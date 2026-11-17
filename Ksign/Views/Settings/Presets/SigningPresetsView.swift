@@ -107,7 +107,7 @@ struct SigningPresetEditView: View {
 	) private var _certificates: FetchedResults<CertificatePair>
 
 	var body: some View {
-		if let preset = _store.binding(for: presetID) {
+		if let preset = SigningPresetStore.shared.binding(for: presetID) {
 			Form {
 				Section(.localized("Preset")) {
 					TextField(.localized("Name"), text: preset.name)
@@ -115,7 +115,7 @@ struct SigningPresetEditView: View {
 					Picker(.localized("Certificate"), selection: preset.certificateUUID) {
 						Text(.localized("Selected certificate")).tag(String?.none)
 						ForEach(_certificates, id: \.uuid) { cert in
-							Text(cert.nickname ?? .localized("Unknown")).tag(cert.uuid)
+							Text(cert.nickname ?? .localized("Unknown")).tag(cert.uuid as String?)
 						}
 					}
 
@@ -226,7 +226,7 @@ struct PresetRuleEditView: View {
 				Picker(.localized("Certificate"), selection: $rule.certificateUUID) {
 					Text(.localized("Same as preset")).tag(String?.none)
 					ForEach(certificates, id: \.uuid) { cert in
-						Text(cert.nickname ?? .localized("Unknown")).tag(cert.uuid)
+						Text(cert.nickname ?? .localized("Unknown")).tag(cert.uuid as String?)
 					}
 				}
 

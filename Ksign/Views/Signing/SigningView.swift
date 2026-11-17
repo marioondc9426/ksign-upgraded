@@ -347,6 +347,8 @@ extension SigningView {
 			return
 		}
 
+		if AppSyncSupport.shouldSkipSigning { _temporaryOptions.onlyModify = true }
+
 		let generator = UIImpactFeedbackGenerator(style: .light)
 		generator.impactOccurred()
 		_isLogsPresenting = _optionsManager.options.signingLogs

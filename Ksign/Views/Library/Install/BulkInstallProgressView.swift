@@ -105,6 +105,11 @@ struct BulkInstallProgressView: View {
                             progressTask = task
                         }
                     }
+                } else if await _installationMethod == TrollStoreSupport.method {
+                    await MainActor.run {
+                        viewModel.status = .completed(.success(()))
+                        TrollStoreSupport.send([packageUrl])
+                    }
                 } else if await _installationMethod == 1 {
                     let proxy = await InstallationProxy(viewModel: viewModel)
                     try await proxy.install(at: packageUrl, suspend: app.identifier == Bundle.main.bundleIdentifier!)

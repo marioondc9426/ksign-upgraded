@@ -37,6 +37,7 @@ struct FeatherApp: App {
             .animation(.smooth, value: extractManager.extractItems.description)
 			.onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
 				Task { @MainActor in
+					CertificateWatcher.scan()
 					await UpdateChecker.check()
 					_pendingUpdates = await UpdateChecker.updatesForAlert()
 				}
@@ -108,6 +109,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _createPipeline()
         _createSourcesDirectory()
         UpdateChecker.register()
+        TrollStoreSupport.sanitizeMethod()
         if !UserDefaults.standard.bool(forKey: "hasInitializedBuiltInSources") {
             _initializeBuiltInSources()
             UserDefaults.standard.set(true, forKey: "hasInitializedBuiltInSources")

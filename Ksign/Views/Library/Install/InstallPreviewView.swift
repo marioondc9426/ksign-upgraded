@@ -143,6 +143,12 @@ struct InstallPreviewView: View {
                             }
                         }
                     }
+                    else if await _installationMethod == TrollStoreSupport.method {
+                        await MainActor.run {
+                            dismiss()
+                            TrollStoreSupport.send([packageUrl])
+                        }
+                    }
                     else if await _installationMethod == 1 {
                         let handler = await InstallationProxy(viewModel: viewModel)
                         try await handler.install(at: packageUrl, suspend: app.identifier == Bundle.main.bundleIdentifier!)

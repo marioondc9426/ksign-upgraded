@@ -13,6 +13,8 @@ struct AppFeaturesView: View {
     @StateObject private var _optionsManager = OptionsManager.shared
     @AppStorage(UpdateManager.autoSignKey) private var _autoSignUpdates = true
     @AppStorage(UpdateManager.notifyKey) private var _notifyUpdates = false
+    @AppStorage(CertificateWatcher.alertsKey) private var _certAlerts = true
+    @AppStorage(CertificateWatcher.offerKey) private var _offerResign = true
     
     var body: some View {
         NBList(.localized("App Features")) {
@@ -66,6 +68,19 @@ struct AppFeaturesView: View {
                 }
             } footer: {
                 Text(.localized("Checks your sources when the app opens and now and then in the background (iOS decides when), and notifies about new versions of apps in your library."))
+            }
+            Section {
+                Toggle(isOn: $_certAlerts) {
+                    Label(.localized("Certificate expiry alerts"), systemImage: "clock.badge.exclamationmark")
+                }
+                .onChange(of: _certAlerts) { enabled in
+                    if enabled { UpdateChecker.requestAuthorization { _ in } }
+                }
+                Toggle(isOn: $_offerResign) {
+                    Label(.localized("Offer re-sign for a newer certificate"), systemImage: "sparkles")
+                }
+            } footer: {
+                Text(.localized("Warns 3 days before a certificate ends. When you add a certificate that lasts longer than the one your signed apps use, Ksign tells you and you can sign them all again in Settings > Bulk Re-sign."))
             }
         }
         .onChange(of: _optionsManager.options) { _ in

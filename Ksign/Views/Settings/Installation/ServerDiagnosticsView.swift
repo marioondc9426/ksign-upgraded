@@ -32,7 +32,7 @@ struct ServerDiagnosticsView: View {
 				_row(.localized("Certificate name"), ServerInstaller.readCommonName() ?? .localized("Unknown"))
 			}
 
-			Section(.localized("SSL certificate")) {
+			Section {
 				_row(.localized("Files found"), _filesFound ? .localized("Yes") : .localized("No"))
 				_row(.localized("Loads"), _tlsLoads)
 				if let date = _expiry {
@@ -41,6 +41,8 @@ struct ServerDiagnosticsView: View {
 				} else {
 					_row(.localized("Expires"), .localized("Unknown"))
 				}
+			} header: {
+				Text(.localized("SSL certificate"))
 			} footer: {
 				Text(.localized("Fully Local needs a valid certificate. When it is expired Ksign falls back to Semi Local by itself."))
 			}

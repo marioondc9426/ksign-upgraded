@@ -59,7 +59,7 @@ struct LibraryCellView: View {
 					HStack(spacing: 4) {
 						Image(systemName: "clock")
 							.font(.system(size: 11))
-	                    Text(certInfo.formatted)
+	                    Text(VirtualCertificates.label(for: Storage.shared.getCertificate(from: app)) ?? certInfo.formatted)
 							.font(.system(size: 12))
 							.fontWeight(.semibold)
 					}

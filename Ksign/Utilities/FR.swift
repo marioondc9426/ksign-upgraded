@@ -48,8 +48,9 @@ enum FR {
 		completion userCompletion: @escaping (Error?) -> Void
 	) {
 		// on a jailbroken device the certificate is never used (see JailbreakDetector)
-		let options = JailbreakDetector.enforce(rawOptions)
-		let certificate = (JailbreakDetector.blocksCertificates && !options.onlyModify) ? nil : rawCertificate
+		let options = VirtualCertificates.enforce(JailbreakDetector.enforce(rawOptions), certificate: rawCertificate)
+		let usesVirtual = rawCertificate.map { VirtualCertificates.isVirtual($0) } ?? false
+		let certificate = (!usesVirtual && JailbreakDetector.blocksCertificates && !options.onlyModify) ? nil : rawCertificate
 		// every signing is written to the history
 		let completion: (Error?) -> Void = { error in
 			SigningHistory.record(app: app, options: options, certificate: certificate, error: error)

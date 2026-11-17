@@ -34,6 +34,7 @@ enum CertificateWatcher {
 		let apps = (try? Storage.shared.context.fetch(request)) ?? []
 		guard let expiration = cert.expiration else { return apps }
 		return apps.filter { app in
+			if let own = app.certificate, VirtualCertificates.isVirtual(own) { return false }
 			guard let current = app.certificate?.expiration else { return true }
 			return current < expiration
 		}
@@ -44,7 +45,7 @@ enum CertificateWatcher {
 		let defaults = UserDefaults.standard
 		let certificates = allCertificates()
 		let now = Date()
-		let valid = certificates.filter { $0.revoked != true && ($0.expiration ?? .distantPast) > now }
+		let valid = certificates.filter { !VirtualCertificates.isVirtual($0) && $0.revoked != true && ($0.expiration ?? .distantPast) > now }
 
 		// 1. expiring soon, once per certificate per day
 		if alertsOn {

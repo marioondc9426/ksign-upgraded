@@ -78,6 +78,7 @@ enum BackupManager {
 		var entries: [CertEntry] = []
 
 		for (index, cert) in certs.enumerated() {
+			if VirtualCertificates.isVirtual(cert) { continue }
 			if let name = cert.nickname, bundled.contains(name) { continue }
 			guard
 				let p12 = Storage.shared.getFile(.certificate, from: cert),

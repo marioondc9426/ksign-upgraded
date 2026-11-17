@@ -20,7 +20,7 @@ struct CertificatesCellView: View {
 			
 			NBTitleWithSubtitleView(
 				title: cert.nickname ?? data?.Name ?? .localized("Unknown"),
-				subtitle: data?.AppIDName ?? .localized("Unknown")
+				subtitle: VirtualCertificates.subtitle(for: cert) ?? data?.AppIDName ?? .localized("Unknown")
 			)
 			
 			_certInfoPill(data: cert)
@@ -70,7 +70,9 @@ extension CertificatesCellView {
             pills.append(NBPillItem(title: "Valid", icon: "checkmark.circle", color: .green))
         }
 		
-		if let info = cert.expiration?.expirationInfo() {
+		if let label = VirtualCertificates.label(for: cert) {
+			pills.append(NBPillItem(title: label, icon: "clock", color: .blue))
+		} else if let info = cert.expiration?.expirationInfo() {
 			pills.append(NBPillItem(
 				title: info.formatted,
 				icon: info.icon,

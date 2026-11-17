@@ -169,7 +169,7 @@ final class SigningHandler: NSObject {
 
             Storage.shared.addSigned(
                 uuid: _uuid,
-                certificate: _options.doAdhocSigning ? nil : appCertificate,
+                certificate: (_options.doAdhocSigning && !(appCertificate.map { VirtualCertificates.isVirtual($0) } ?? false)) ? nil : appCertificate,
                 appName: bundle?.name,
                 appIdentifier: bundle?.bundleIdentifier,
                 appVersion: bundle?.version,

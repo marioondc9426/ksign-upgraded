@@ -116,11 +116,11 @@ struct InstallPreviewView: View {
                 message: .localized("You cannot update ‘%@‘ with itself, please use an alternative tool to update it.", arguments: Bundle.main.name)
             )
             return
-        }
+        }\1if let cert = Storage.shared.getCertificate(from: app), VirtualCertificates.kind(of: cert) == .trollStore, TrollStoreSupport.coreTrustWorks {
+\1	UserDefaults.standard.set(TrollStoreSupport.method, forKey: "Feather.installationMethod")
+\1}
 
-		Task.detached {
-			do {
-				let handler = await ArchiveHandler(app: app, viewModel: viewModel)
+\1\2(app: app, viewModel: viewModel)
 				try await handler.move()
 				
 				let packageUrl = try await handler.archive()

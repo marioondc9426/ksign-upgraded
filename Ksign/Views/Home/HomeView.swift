@@ -24,7 +24,7 @@ struct HomeView: View {
 
 	/// the certificate that ends first (only the ones still valid)
 	private var _soonestCertificate: CertificatePair? {
-		_certificates.first { $0.revoked != true && ($0.expiration ?? .distantPast) > Date() }
+		_certificates.first { !VirtualCertificates.isVirtual($0) && $0.revoked != true && ($0.expiration ?? .distantPast) > Date() }
 	}
 
 	@FetchRequest(

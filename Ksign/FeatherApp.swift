@@ -67,6 +67,7 @@ struct FeatherApp: App {
 			}
 			.onAppear {
 				accentColorManager.updateGlobalTintColor()
+				VirtualCertificates.sync()
 				if logsManager.isCapturing { logsManager.startCapture() }
 			}
 		}

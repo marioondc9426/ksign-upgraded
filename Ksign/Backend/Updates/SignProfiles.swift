@@ -39,6 +39,7 @@ enum SignProfiles {
 		if let data = try? JSONEncoder().encode(current) {
 			UserDefaults.standard.set(data, forKey: _key)
 		}
+		LibraryVersionIndex.shared.invalidate()
 	}
 
 	static func remove(_ bundleID: String) {

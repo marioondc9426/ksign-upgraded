@@ -38,14 +38,17 @@ final class UpdateManager: ObservableObject {
 	/// apps in `repos` that are newer than the copy in the library (matched by bundle identifier)
 	static func outdated(in repos: [ASRepository]) -> [OutdatedApp] {
 		var best: [String: OutdatedApp] = [:]
+		let library = LibraryVersionIndex.shared.versions
+		if library.isEmpty { return [] }
 
 		for repo in repos {
 			for app in repo.apps {
+				// the library lookup comes first: almost no app of a source is in your library
 				guard
 					let bundleID = app.id, !bundleID.isEmpty,
+					let local = library[bundleID],
 					let version = app.currentVersion, !version.isEmpty,
 					app.currentDownloadUrl != nil,
-					let local = Storage.shared.libraryVersion(for: bundleID),
 					Storage.isNewer(version, than: local)
 				else { continue }
 

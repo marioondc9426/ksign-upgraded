@@ -96,7 +96,7 @@ struct SettingsView: View {
                         Label(.localized("Bulk Re-sign"), systemImage: "arrow.triangle.2.circlepath")
                     }
 					NavigationLink(destination: SigningPresetsView()) {
-                        Label(.localized("Signing Presets"), systemImage: "bolt.badge.checkmark")
+                        Label(.localized("Signing Presets"), systemImage: "slider.horizontal.3")
                     }
 					NavigationLink(destination: BackupRestoreView()) {
                         Label(.localized("Backup & Restore"), systemImage: "externaldrive.badge.timemachine")

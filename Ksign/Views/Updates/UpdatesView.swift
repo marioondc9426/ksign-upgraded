@@ -123,13 +123,14 @@ struct UpdatesLinkButton: View {
 	}
 
 	var body: some View {
+		let count = _count
 		NavigationLink {
 			UpdatesView()
 		} label: {
 			Image(systemName: "arrow.triangle.2.circlepath.circle")
 				.overlay(alignment: .topTrailing) {
-					if _count > 0 {
-						Text("\(_count)")
+					if count > 0 {
+						Text("\(count)")
 							.font(.system(size: 10, weight: .bold))
 							.foregroundStyle(.white)
 							.padding(.horizontal, 4)

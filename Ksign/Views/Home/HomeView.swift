@@ -93,7 +93,7 @@ struct HomeView: View {
 						NavigationLink {
 							SigningPresetsView()
 						} label: {
-							Label(.localized("Create a signing preset to start"), systemImage: "bolt.badge.checkmark")
+							Label(.localized("Create a signing preset to start"), systemImage: "slider.horizontal.3")
 						}
 					} else if _imported.isEmpty {
 						Text(.localized("Import an IPA first, it shows up here."))

@@ -33,6 +33,9 @@ $(SCHEMES): deps
 	    -sdk $(PLATFORM) \
 	    -derivedDataPath $(TMP) \
 	    -skipPackagePluginValidation \
+	    -jobs $(shell sysctl -n hw.ncpu) \
+	    COMPILER_INDEX_STORE_ENABLE=NO \
+	    DEBUG_INFORMATION_FORMAT=dwarf \
 	    CODE_SIGNING_ALLOWED=NO \
 	    ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO
 

@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: beta-build
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build Beta
@@ -20,7 +24,20 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      # packages + compiled intermediates survive between runs, so only what changed gets rebuilt
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}/Ksign/SourcePackages
+            ${{ runner.temp }}/Ksign/Build/Intermediates.noindex
+          key: ksign-build-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            ksign-build-${{ runner.os }}-
+
       - name: Build
+        env:
+          TMPDIR: ${{ runner.temp }}/
         run: |
           make
 

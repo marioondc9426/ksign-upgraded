@@ -15,6 +15,14 @@
       "tintColor": "3c94fc",
       "versions": [
         {
+          "version": "1.6.1.153",
+          "date": "2026-11-19T00:30:04Z",
+          "size": 16506601,
+          "downloadURL": "https://github.com/marioondc9426/ksign-upgraded/releases/download/build-80886fd/KsignPlus-80886fd.ipa",
+          "localizedDescription": "Ksign+ 1.6.1.153",
+          "minOSVersion": "16.0"
+        },
+        {
           "version": "1.6.1.143",
           "date": "2026-11-17T16:36:23Z",
           "size": 16434440,
@@ -23,10 +31,10 @@
           "minOSVersion": "16.0"
         }
       ],
-      "version": "1.6.1.143",
-      "versionDate": "2026-11-17T16:36:23Z",
-      "downloadURL": "https://github.com/marioondc9426/ksign-upgraded/releases/download/build-883f32d/KsignPlus-883f32d.ipa",
-      "size": 16434440
+      "version": "1.6.1.153",
+      "versionDate": "2026-11-19T00:30:04Z",
+      "downloadURL": "https://github.com/marioondc9426/ksign-upgraded/releases/download/build-80886fd/KsignPlus-80886fd.ipa",
+      "size": 16506601
     }
   ],
   "news": []
